@@ -16,9 +16,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const realLock = JSON.parse(fs.readFileSync(path.join(root, 'games.lock.json'), 'utf8')) as GamesLock;
 
 describe('games.lock.json', () => {
-  it('is valid and lists snake and coloring', () => {
+  it('is valid and lists every published game', () => {
     expect(validateLock(realLock)).toEqual([]);
-    expect(realLock.games.map((g) => g.slug).sort()).toEqual(['coloring', 'snake']);
+    expect(realLock.games.map((g) => g.slug).sort()).toEqual(['catch-the-booster', 'coloring', 'moon-touchdown', 'snake']);
   });
 
   it('points every game at its 499apps repo and sibling folder', () => {

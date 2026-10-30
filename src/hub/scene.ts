@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Hub scene: a cozy playroom with a glossy arcade marquee and a shelf of big game cartridges.
  * Each cartridge has a glowing screen and a small 3D preview of its game. Rendering only:
  * selection, layout and the catalogue live in pure modules.
@@ -214,6 +214,51 @@ function buildRocketPreview(entry: GameEntry): THREE.Group {
   return g;
 }
 
+/** A small moon lander over a grey regolith pad with one crater. */
+function buildLanderPreview(entry: GameEntry): THREE.Group {
+  const g = new THREE.Group();
+  const foil = candyMaterial(previewColor(entry, palette.lemon), { roughness: 0.3 });
+  const frame = candyMaterial(previewColor(entry, palette.cream), { roughness: 0.4 });
+  const glass = candyMaterial(previewColor(entry, palette.sky), { roughness: 0.1 });
+  const lander = new THREE.Group();
+  const body = new THREE.Mesh(roundedBox(0.5, 0.36, 0.5, 0.08, 3), foil);
+  body.castShadow = true;
+  const cabin = new THREE.Mesh(new THREE.SphereGeometry(0.2, 22, 14, 0, Math.PI * 2, 0, Math.PI / 2), frame);
+  cabin.position.y = 0.18;
+  cabin.castShadow = true;
+  const visor = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 10), glass);
+  visor.position.set(0, 0.26, 0.17);
+  visor.scale.set(1, 1, 0.5);
+  const nozzle = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.16, 18, 1, true), frame);
+  nozzle.position.y = -0.24;
+  lander.add(body, cabin, visor, nozzle);
+  const legGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.5, 8);
+  const padGeo = new THREE.CylinderGeometry(0.075, 0.075, 0.03, 14);
+  for (let k = 0; k < 4; k++) {
+    const a = Math.PI / 4 + (k / 4) * Math.PI * 2;
+    const leg = new THREE.Mesh(legGeo, frame);
+    leg.position.set(Math.sin(a) * 0.3, -0.3, Math.cos(a) * 0.3);
+    leg.rotation.set(Math.cos(a) * 0.5, 0, -Math.sin(a) * 0.5);
+    const pad = new THREE.Mesh(padGeo, frame);
+    pad.position.set(Math.sin(a) * 0.42, -0.53, Math.cos(a) * 0.42);
+    lander.add(leg, pad);
+  }
+  lander.position.y = 0.22;
+  g.add(lander);
+  const ground = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.75, 0.8, 0.12, 32),
+    candyMaterial(previewColor(entry, '#a9a5b8'), { roughness: 0.9 }),
+  );
+  ground.position.y = -0.4;
+  ground.receiveShadow = true;
+  const crater = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.035, 8, 20), candyMaterial(palette.plum, { roughness: 0.9 }));
+  crater.rotation.x = Math.PI / 2;
+  crater.position.set(0.45, -0.33, 0.25);
+  g.add(ground, crater);
+  g.rotation.z = 0.12;
+  return g;
+}
+
 function buildLockBadge(): THREE.Group {
   const g = new THREE.Group();
   const gold = candyMaterial(palette.lemon, { emissive: palette.tangerine, emissiveIntensity: 0.15 });
@@ -231,6 +276,7 @@ function buildLockBadge(): THREE.Group {
 function buildPreview(entry: GameEntry): THREE.Group {
   if (entry.preview === 'coloring') return buildColoringPreview(entry);
   if (entry.preview === 'snake') return buildSnakePreview(entry);
+  if (entry.preview === 'lander') return buildLanderPreview(entry);
   return buildRocketPreview(entry);
 }
 

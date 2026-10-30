@@ -14,6 +14,11 @@
       "slug": "catch-the-booster",
       "repo": "https://github.com/499apps/game-catch-the-booster.git",
       "ref": "b18dcc296e8bdfa57fcd0b9522a9ebb0bac8d982"
+    },
+    {
+      "slug": "moon-touchdown",
+      "repo": "https://github.com/499apps/game-moon-touchdown.git",
+      "ref": "2b90597946668087c5500ee145bda8521df69e62"
     }
   ]
 }

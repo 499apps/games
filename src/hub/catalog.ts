@@ -7,7 +7,7 @@ import type { IconName } from '../kit/icons';
 import { palette } from '../kit/theme';
 
 export type GameStatus = 'ready' | 'soon';
-export type PreviewKind = 'coloring' | 'snake' | 'rocket';
+export type PreviewKind = 'coloring' | 'snake' | 'rocket' | 'lander';
 
 export interface GameEntry {
   slug: string;
@@ -53,6 +53,16 @@ export const GAMES: readonly GameEntry[] = [
     accent: palette.bubblegum,
     icon: 'rocket',
     preview: 'rocket',
+  },
+  {
+    slug: 'moon-touchdown',
+    title: 'Moon Touchdown',
+    href: `${HUB_BASE}moon-touchdown/`,
+    status: 'ready',
+    color: palette.sky,
+    accent: palette.lemon,
+    icon: 'rocket',
+    preview: 'lander',
   },
 ];
 
