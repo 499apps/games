@@ -1,0 +1,14 @@
+{
+  "games": [
+    {
+      "slug": "snake",
+      "repo": "https://github.com/499apps/game-snake.git",
+      "ref": "main"
+    },
+    {
+      "slug": "coloring",
+      "repo": "https://github.com/499apps/game-coloring.git",
+      "ref": "main"
+    }
+  ]
+}

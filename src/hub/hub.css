@@ -1,0 +1,218 @@
+/* Hub page layout: 3D stage, title, and the accessible tile links. Menus stay on the left. */
+
+.hub-stage {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: var(--g499-rail-inset);
+}
+
+.hub-title {
+  position: absolute;
+  top: calc(14px + var(--g499-safe-top));
+  left: calc(20px + var(--g499-rail-inset));
+  right: calc(20px + var(--g499-safe-right));
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hub-title h1 {
+  margin: 0;
+  font-size: clamp(22px, 3.4vw, 36px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  background: linear-gradient(90deg, var(--g499-lemon), var(--g499-tangerine) 45%, var(--g499-bubblegum));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.35));
+}
+
+.hub-title p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 247, 230, 0.75);
+}
+
+/* Phones: leave room for the left-edge drawer button. */
+@media (max-width: 719px) {
+  .hub-title {
+    left: calc(16px + var(--g499-safe-left));
+    text-align: center;
+  }
+}
+
+.hub-tiles {
+  position: absolute;
+  left: var(--g499-rail-inset);
+  right: 0;
+  bottom: calc(14px + var(--g499-safe-bottom));
+  display: flex;
+  justify-content: center;
+  padding: 0 calc(12px + var(--g499-safe-right)) 0 12px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hub-tiles ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hub-tile {
+  --tile-accent: var(--g499-lemon);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--g499-touch);
+  min-width: var(--g499-touch);
+  padding: 8px 18px 8px 10px;
+  border-radius: 999px;
+  background: rgba(23, 19, 43, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--g499-cream);
+  font-size: 17px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    transform 180ms cubic-bezier(0.2, 1.4, 0.4, 1),
+    box-shadow 180ms ease,
+    background 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hub-tile[data-slug='coloring'] {
+  --tile-accent: var(--g499-sky);
+}
+
+.hub-tile[data-slug='snake'] {
+  --tile-accent: var(--g499-lime);
+}
+
+.hub-tile[data-slug='catch-the-booster'] {
+  --tile-accent: var(--g499-lavender);
+}
+
+.hub-tile .hub-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--tile-accent);
+  color: var(--g499-ink);
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5);
+}
+
+.hub-tile .hub-tile-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.hub-tile:hover {
+  transform: translateY(-2px);
+  background: rgba(45, 34, 89, 0.85);
+}
+
+.hub-tile:active {
+  transform: scale(0.95);
+}
+
+.hub-tile:focus-visible {
+  outline: 3px solid var(--g499-lemon);
+  outline-offset: 3px;
+}
+
+.hub-tile.is-selected {
+  background: rgba(45, 34, 89, 0.92);
+  box-shadow:
+    0 0 0 3px var(--tile-accent),
+    0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.hub-tile.is-opening {
+  transform: scale(1.06);
+}
+
+.hub-tile.is-soon {
+  color: rgba(255, 247, 230, 0.7);
+  cursor: default;
+}
+
+.hub-tile.is-soon .hub-tile-icon {
+  filter: saturate(0.55) brightness(0.85);
+}
+
+.hub-tile .hub-soon-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--g499-lemon);
+  color: var(--g499-ink);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hub-tile.is-nudged {
+  animation: hub-nudge 420ms ease;
+}
+
+@keyframes hub-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px) rotate(-2deg);
+  }
+  40% {
+    transform: translateX(6px) rotate(2deg);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+.hub-noscript {
+  position: absolute;
+  inset: auto 0 96px;
+  text-align: center;
+  color: var(--g499-cream);
+}
+
+@media (max-width: 719px) {
+  .hub-tile {
+    font-size: 15px;
+    padding-right: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-tile {
+    transition: none;
+  }
+
+  .hub-tile.is-nudged {
+    animation: none;
+  }
+}

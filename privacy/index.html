@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Privacy for parents - 499apps Games</title>
+    <meta name="description" content="499apps Games collects nothing. No accounts, ads, analytics, cookies or trackers.">
+    <meta name="theme-color" content="#1b1740">
+    <meta name="color-scheme" content="dark">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Games">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <script type="module" src="/src/privacy/main.ts"></script>
+  </head>
+  <body>
+    <main class="privacy-main" id="main">
+      <header class="privacy-hero">
+        <p class="privacy-kicker">For parents and carers</p>
+        <h1>We collect nothing.</h1>
+        <p class="privacy-lead">499apps Games has no accounts, no ads, no analytics, no cookies and no trackers. Your child can play without anyone watching.</p>
+      </header>
+
+      <section class="privacy-card" aria-labelledby="h-not">
+        <h2 id="h-not">What the games do not do</h2>
+        <ul class="privacy-list is-no">
+          <li>They do not ask for a name, an e-mail address, a photo or any other personal information.</li>
+          <li>They do not show ads and do not sell anything.</li>
+          <li>They do not use analytics, cookies, trackers or fingerprinting.</li>
+          <li>They do not link to other websites.</li>
+          <li>They make no network calls after the page loads. The only download is the site's own files, so the games work offline.</li>
+          <li>They do not use chat, accounts or sharing.</li>
+        </ul>
+      </section>
+
+      <section class="privacy-card" aria-labelledby="h-device">
+        <h2 id="h-device">What stays on this device</h2>
+        <p>Some small settings and scores stay in this browser's local storage. They never leave this device. Every key starts with <code>g499:</code>.</p>
+        <table class="privacy-table">
+          <thead>
+            <tr><th scope="col">Key</th><th scope="col">What it holds</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>g499:mute</code></td><td>Sound on or off, for all games</td></tr>
+            <tr><td><code>g499:snake:*</code></td><td>Snake: best score and settings</td></tr>
+            <tr><td><code>g499:coloring:*</code></td><td>Coloring: saved pictures and settings</td></tr>
+          </tbody>
+        </table>
+        <p class="privacy-now"><strong>Keys on this device now:</strong> <span id="keys-now">none</span></p>
+      </section>
+
+      <section class="privacy-card privacy-clear" aria-labelledby="h-clear">
+        <h2 id="h-clear">Clear my data</h2>
+        <p>Hold the button for about one second. This removes every <code>g499:</code> key from this browser. The games still work offline afterwards.</p>
+        <button type="button" class="g499-button is-danger" id="clear-data" aria-label="Clear my data (hold to confirm)">
+          <span class="g499-icon" aria-hidden="true"><svg class="g499-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 3.5 10 8"/><path d="m10 8 4.5 4.5"/><path d="M7.5 10.5 13.5 16.5c-2 2.5-5.5 3.5-9 3.5.5-3.5 1.5-7 3-9.5z"/><path d="M6 15.5 9.5 19"/></svg></span>
+          <span class="g499-label">Hold to clear my data</span>
+          <span class="g499-hold-fill" aria-hidden="true"></span>
+          <span class="g499-hold-done" aria-hidden="true"><span>Cleared</span></span>
+        </button>
+        <p class="privacy-status" id="clear-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="privacy-card" aria-labelledby="h-offline">
+        <h2 id="h-offline">Works offline</h2>
+        <p>After the first visit, the browser keeps a copy of the site's own files. The games then work in airplane mode. This copy holds no personal data.</p>
+      </section>
+
+      <section class="privacy-card" aria-labelledby="h-coppa">
+        <h2 id="h-coppa">Children's privacy (COPPA)</h2>
+        <p>The games do not collect, use or share personal information from children or from anyone else. Because nothing is collected, there is nothing to ask consent for, to review or to delete on a server. This makes the games COPPA-friendly by design.</p>
+      </section>
+
+      <section class="privacy-card" aria-labelledby="h-open">
+        <h2 id="h-open">Open source</h2>
+        <p>All the code is open source under the MIT licence. Anyone can check these promises. The repositories on GitHub are:</p>
+        <ul class="privacy-list">
+          <li><code>499apps/games</code> (this hub and this page)</li>
+          <li><code>499apps/games-kit</code> (shared code)</li>
+          <li><code>499apps/game-snake</code></li>
+          <li><code>499apps/game-coloring</code></li>
+        </ul>
+      </section>
+
+      <section class="privacy-card" aria-labelledby="h-contact">
+        <h2 id="h-contact">Questions</h2>
+        <p>Contact us through the <a href="/">499apps.com</a> site.</p>
+        <p><a class="g499-button is-secondary privacy-back" href="/games/">Back to the games</a></p>
+      </section>
+    </main>
+  </body>
+</html>
