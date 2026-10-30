@@ -38,6 +38,15 @@ export function hubTargets(prefix = ''): SmokeTarget[] {
   ];
 }
 
+/**
+ * Games with their own engine and UI instead of the kit, mapped to their ?test=1 window hook.
+ * The site suite checks only their hub integration (e2e/own-engine.ts); each game's own repo
+ * runs its full suite (menu, play, privacy, offline, visuals) in all 5 projects.
+ */
+export const OWN_ENGINE_GAMES: ReadonlyMap<string, string> = new Map([
+  ['catch-the-booster', '__catch'],
+]);
+
 /** Games inside the assembled site: one /games/ worker and the hub manifest. */
 export function assembledGameTarget(slug: string): SmokeTarget {
   return {

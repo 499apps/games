@@ -21,7 +21,7 @@ describe('catalogue', () => {
       if (g.status === 'ready') expect(g.href).toBe(`/games/${g.slug}/`);
       else expect(g.href).toBeNull();
     }
-    expect(GAMES.filter(isPlayable).map((g) => g.slug)).toEqual(['coloring', 'snake']);
+    expect(GAMES.filter(isPlayable).map((g) => g.slug)).toEqual(['coloring', 'snake', 'catch-the-booster']);
   });
 
   it('finds games by slug', () => {

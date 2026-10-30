@@ -47,8 +47,8 @@ export const GAMES: readonly GameEntry[] = [
   {
     slug: 'catch-the-booster',
     title: 'Catch the Booster',
-    href: null,
-    status: 'soon',
+    href: `${HUB_BASE}catch-the-booster/`,
+    status: 'ready',
     color: palette.lavender,
     accent: palette.bubblegum,
     icon: 'rocket',

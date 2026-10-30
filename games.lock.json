@@ -9,6 +9,11 @@
       "slug": "coloring",
       "repo": "https://github.com/499apps/game-coloring.git",
       "ref": "25759fc511e0dfd96dfc552ce0ba0545d59fb2d9"
+    },
+    {
+      "slug": "catch-the-booster",
+      "repo": "https://github.com/499apps/game-catch-the-booster.git",
+      "ref": "2d9e3d0141f19654abf2b31191d40190ed500f41"
     }
   ]
 }

@@ -289,10 +289,11 @@ Effort: S = about 1 week, M = 2 to 3 weeks, L = 4 weeks or more.
 | Hub | `499apps/games` | Built |
 | 3D Coloring | `499apps/game-coloring` | Built (G3): picture picker, fill, brush and rainbow tools, undo, autosave, PNG export |
 | 3D Snake | `499apps/game-snake` | Built (G2): easy, normal and fast modes |
+| Catch the Booster | `499apps/game-catch-the-booster` | Built: Final Approach with Cadet, Pilot and Flight Director tiers, live on the hub. The design is in that repo's `docs/design.md`. |
 
-### Next: Catch the Booster
+### Catch the Booster (built)
 
-- Repo: `499apps/game-catch-the-booster`. Hub tile: "coming soon" (disabled).
+- Repo: `499apps/game-catch-the-booster`. Hub tile: live. The original plan notes below are kept for history; the built game follows its own design doc.
 - Original design. No space-company names (the game is "Catch the Booster", never a real vehicle name), no logos, no trade dress and no exact likenesses of real rockets, towers or launch sites.
 - Mechanic: a returning rocket booster descends with wind drift. The player slides the tower arm carriage and closes two padded catcher arms at the right time to catch it.
 - Descent: throttle bursts, gusts, a landing-burn window.

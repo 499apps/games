@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { defineSmokeSuite } from '../src/kit/smoke/suite';
 import { checkHtmlForLiquid, checkOutputNames } from '../src/kit/scripts/lib/precache.mjs';
-import { assembledGameTarget, hubTargets } from './targets';
+import { defineOwnEngineSuite } from './own-engine';
+import { OWN_ENGINE_GAMES, assembledGameTarget, hubTargets } from './targets';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const siteDir = path.resolve(here, '..', 'site');
@@ -12,6 +13,7 @@ const lock = JSON.parse(fs.readFileSync(path.resolve(here, '..', 'games.lock.jso
   games: Array<{ slug: string }>;
 };
 const slugs = lock.games.map((g) => g.slug);
+const kitSlugs = slugs.filter((s) => !OWN_ENGINE_GAMES.has(s));
 
 const [hub, privacy] = hubTargets('site-');
 if (!hub || !privacy) throw new Error('hub targets missing');
@@ -20,11 +22,15 @@ defineSmokeSuite([
   {
     ...hub,
     // One worker for everything: after the first hub visit, every page works offline.
-    offlineAlso: ['/games/privacy/', ...slugs.map((s) => `/games/${s}/`)],
+    offlineAlso: ['/games/privacy/', ...kitSlugs.map((s) => `/games/${s}/`)],
   },
   privacy,
-  ...slugs.map((s) => assembledGameTarget(s)),
+  ...kitSlugs.map((s) => assembledGameTarget(s)),
 ]);
+
+for (const [slug, hook] of OWN_ENGINE_GAMES) {
+  if (slugs.includes(slug)) defineOwnEngineSuite(slug, hook);
+}
 
 function listFiles(dir: string): string[] {
   const out: string[] = [];
