@@ -59,3 +59,14 @@ describe('pages', () => {
     });
   }
 });
+
+describe('names', () => {
+  // H G renamed the rocket game to "Catch the Booster": no real space-company or vehicle names.
+  const banned = /starship|spacex|falcon|mechazilla|super heavy|tesla/i;
+
+  it('uses no real space-company or vehicle names in the catalogue or the hub page', () => {
+    for (const g of GAMES) expect(g.title).not.toMatch(banned);
+    expect(hubHtml).not.toMatch(banned);
+    expect(privacyHtml).not.toMatch(banned);
+  });
+});

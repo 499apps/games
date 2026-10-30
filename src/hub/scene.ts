@@ -43,6 +43,10 @@ export interface HubSceneOptions {
 
 const SHELF_DEPTH = 1.5;
 const SHELF_H = 0.3;
+/** Share of palette.night mixed into playable tile shells (review H1). */
+const SHELL_DEEPEN = 0.12;
+/** Shadow map refresh period in frames between layout or selection changes (review H2). */
+const SHADOW_EVERY = 4;
 
 function previewColor(entry: GameEntry, hex: string): string {
   return isPlayable(entry) ? hex : mixHex(hex, palette.night, 0.35);
@@ -236,9 +240,12 @@ function buildTile(entry: GameEntry, index: number): TileRig {
   const body = new THREE.Group();
   root.add(body);
   const playable = isPlayable(entry);
-  const shellColor = playable ? entry.color : mixHex(entry.color, palette.night, 0.45);
+  // A touch of night in the pastel shells keeps them below white under the key light.
+  const shellColor = mixHex(entry.color, palette.night, playable ? SHELL_DEEPEN : 0.45);
 
-  const shell = new THREE.Mesh(roundedBox(TILE_W, TILE_H, 0.55, 0.22, 5), candyMaterial(shellColor));
+  const shellMat = candyMaterial(shellColor, { clearcoat: 0.6 });
+  shellMat.envMapIntensity = 0.45;
+  const shell = new THREE.Mesh(roundedBox(TILE_W, TILE_H, 0.55, 0.22, 5), shellMat);
   shell.position.y = TILE_H / 2;
   shell.castShadow = true;
   shell.receiveShadow = true;
@@ -331,11 +338,15 @@ export class HubScene {
   private hovered: number | null = null;
   private pointer = { x: 0, y: 0 };
   private firstLayout = true;
+  private shadowFrame = 0;
 
   constructor(kit: KitRenderer, games: readonly GameEntry[], rng: Rng, o: HubSceneOptions) {
     this.kit = kit;
     this.rng = rng;
     this.reduced = o.reducedMotion;
+    // Shadows are drawn on demand (layout, selection, every SHADOW_EVERY frames): review H2.
+    kit.renderer.shadowMap.autoUpdate = false;
+    kit.renderer.shadowMap.needsUpdate = true;
     const scene = kit.scene;
     scene.background = new THREE.Color(palette.night);
     scene.fog = new THREE.Fog(palette.night, 36, 80);
@@ -398,7 +409,8 @@ export class HubScene {
       new THREE.MeshPhysicalMaterial({
         color: palette.lemon,
         emissive: new THREE.Color(palette.tangerine),
-        emissiveIntensity: 1.1,
+        // Warm, not white: the bar clipped to white at 1.1 on a real GPU (review H1).
+        emissiveIntensity: 0.6,
         roughness: 0.2,
         clearcoat: 1,
       }),
@@ -534,6 +546,7 @@ export class HubScene {
       this.applyCamera(0);
     }
     this.firstLayout = false;
+    this.requestShadow();
   }
 
   get selectedIndex(): number {
@@ -546,6 +559,7 @@ export class HubScene {
 
   select(index: number): void {
     if (index < 0 || index >= this.rigs.length) return;
+    if (index !== this.selected) this.requestShadow();
     this.selected = index;
   }
 
@@ -647,11 +661,11 @@ export class HubScene {
 
       const pulse = this.reduced ? 0 : Math.sin(t * 3.2) * 0.12 * rig.sel;
       rig.screenMat.emissiveIntensity = 0.14 + 0.45 * rig.sel + 0.12 * rig.hover + pulse;
-      rig.stripMat.emissiveIntensity = 0.35 + 2.4 * rig.sel + 0.4 * rig.hover;
+      rig.stripMat.emissiveIntensity = 0.35 + 1.0 * rig.sel + 0.4 * rig.hover;
     }
 
     this.bulbs.forEach((m, k) => {
-      m.emissiveIntensity = this.reduced ? 1.2 : 0.8 + 0.7 * (0.5 + 0.5 * Math.sin(t * 2.4 + k * 0.9));
+      m.emissiveIntensity = this.reduced ? 1.0 : 0.7 + 0.6 * (0.5 + 0.5 * Math.sin(t * 2.4 + k * 0.9));
     });
 
     const count = this.sparkles.count;
@@ -674,5 +688,14 @@ export class HubScene {
 
     this.particles.update(dt);
     this.applyCamera(dt);
+
+    // Tiles only bob a few centimetres, so the shadow map refreshes every few frames, not
+    // every frame. A tier change drops the map; draw a new one at once.
+    this.shadowFrame = (this.shadowFrame + 1) % SHADOW_EVERY;
+    if (this.shadowFrame === 0 || this.lights.key.shadow.map === null) this.requestShadow();
+  }
+
+  private requestShadow(): void {
+    this.kit.renderer.shadowMap.needsUpdate = true;
   }
 }

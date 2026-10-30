@@ -115,13 +115,14 @@ CAUTION: Do not add a `.github/workflows` folder to any repo. All CI is local.
 - Storage is `localStorage` only. Every key starts with `g499:`.
 - "Clear my data" removes every `g499:` key and any user-data cache. It is on the hub (left rail) and on the privacy page. It needs a long hold, so a child cannot press it by accident.
 - Fonts come from the system font stack. Sounds come from WebAudio synthesis. Icons are original code-drawn art.
+- The CSP meta tag has no `frame-ancestors` directive, on purpose. Browsers ignore `frame-ancestors` in a meta tag, and Chromium logs a console error for it. The smoke suite fails on any console error. To block framing, the host must send `frame-ancestors 'none'` as an HTTP header. GitHub Pages cannot send custom headers, so this is not possible today. Do not add the directive to the meta tag.
 
 ### 4.1 Storage keys
 
 | Key | Owner | Contents |
 | --- | --- | --- |
 | `g499:mute` | kit | Sound on or off |
-| `g499:snake:*` | game-snake | Best score per mode (`best:easy`, `best:normal`, `best:fast`), mode, d-pad on or off |
+| `g499:snake:*` | game-snake | Best score per mode (`best:easy`, `best:normal`, `best:fast`; garden boards add `:garden`), mode, d-pad on or off, garden boards on or off |
 | `g499:coloring:*` | game-coloring | Saved pictures, settings |
 
 ## 5. Offline model
@@ -149,7 +150,8 @@ This is a global rule from the owner.
 
 - All menus go on the left side.
 - Tablet and desktop: a fixed left rail.
-- Phone (width below 720 px): a left slide-out drawer. A button on the left edge opens it.
+- Phone (width below 720 px): a left slide-out drawer. A button at the top-left corner opens it, on every page (hub, privacy page and games). Game controls on the left start below this button.
+- Rail labels are short ("Sound", "Full screen", "Clear data") and wrap to 2 lines at most. They are never cut off.
 - The rail holds: home, game actions (for example restart or mode), mute, fullscreen (where supported), privacy link, "clear my data".
 - Never put menus or settings buttons top-right or on the right side.
 - HUD readouts (score, best) can go where gameplay needs them.
@@ -167,7 +169,7 @@ This is a global rule from the owner.
  desktop / tablet
 
 +-------------------------+
-|[=]               [HUD]  |   [=] = left-edge drawer button
+|[=]               [HUD]  |   [=] = top-left drawer button
 |                         |
 |       play area         |
 |                         |
@@ -201,22 +203,25 @@ Look: a modern arcade cabinet in a cozy playroom. Bold, glossy, toy-like.
 | coral | `#ff6b6b` | Accent |
 | tangerine | `#ffa94d` | Accent, warm glow |
 | lemon | `#ffe66d` | Highlights, focus ring |
-| lime | `#8ce99a` | Snake, success |
+| lime | `#8ce99a` | Success, hub Snake tile |
 | mint | `#63e6be` | Accent |
 | sky | `#74c0fc` | Coloring, cool accent |
 | lavender | `#b197fc` | Accent |
 | bubblegum | `#f783ac` | "Clear my data", accent |
 | cream | `#fff7e6` | Text |
 
+Game-local colours (not in the kit palette): the Snake body is a stronger green, `#2fc45a` with `#178a45` bands (`game-snake/src/scene.ts`), because the pastel lime read near-white under bloom. The Snake gem food is `#3d8bfd`.
+
 ### 9.2 Lighting recipe
 
 - Hemisphere light: sky `#d6e9ff`, ground `#4a3a7a`.
-- Key light: warm `#fff1dc`, from top-right front. It casts soft PCF shadows.
+- Key light: warm `#fff1dc`, intensity 2.4, from top-right front. It casts soft PCF shadows.
 - Rim light: cool `#8ec5ff`, from behind-left.
-- Fill light: pink point light `#ffb8d1`, front-left.
+- Fill light: pink point light `#ffb8d1`, intensity 14, front-left.
 - Environment: `RoomEnvironment` through PMREM, made locally. No HDR downloads.
-- Materials: `MeshPhysicalMaterial` with clearcoat for candy plastic.
-- Post: UnrealBloom (threshold 0.82), vignette, ACES Filmic tone mapping, sRGB output.
+- Materials: `MeshPhysicalMaterial` with clearcoat for candy plastic. Sheen is off by default (it adds a white rim and costs GPU time).
+- Post: UnrealBloom (strength 0.4, radius 0.45, threshold 1.0), vignette, ACES Filmic tone mapping (exposure 0.95), sRGB output. Pages can set their own bloom and tone mapping: the hub uses threshold 1.15, Coloring uses Neutral tone mapping so paints match their swatches.
+- Look gate: lit pastel surfaces must not clip to white. The smoke suite opens each 3D page at `?tier=high` (bloom on) and checks that less than 3% of the canvas has min(R, G, B) of 240 or more. A page can leave out a rectangle that is white on purpose (the Coloring paper).
 - Motion: squash and stretch, eased lifts, particle pops, gentle idle bobbing.
 
 ## 10. Performance budget
@@ -224,7 +229,7 @@ Look: a modern arcade cabinet in a cozy playroom. Bold, glossy, toy-like.
 - Target: 60 fps on a mid-range phone.
 - Device pixel ratio cap: 2 (high), 1.5 (medium), 1 (low).
 - Quality tiers: shadows, shadow map size, bloom and particle count per tier.
-- A startup probe picks the first tier. A frame-time monitor lowers the tier when the median frame time is above 20 ms.
+- A startup probe picks the first tier. A frame-time monitor lowers the tier when the median frame time of a 30-frame window is above 20 ms (about 1 s at 30 fps).
 - On a software rasteriser (SwiftShader, llvmpipe, Microsoft Basic Render Driver), the first tier is `low`. `?tier=` overrides this.
 - Test mode (`?test=1`) draws frames on demand: once at start, then after a step, an input, a resize or a tier change. `&live=1` keeps the continuous loop.
 - Test mode creates no AudioContext. Audio errors never throw and never log to the console.
@@ -232,6 +237,7 @@ Look: a modern arcade cabinet in a cozy playroom. Bold, glossy, toy-like.
 - Smoke test: median frame time 20 ms or less in desktop Chromium.
   Headless allowance: on a software rasteriser (SwiftShader) the test starts at the low tier and allows 50 ms.
   Set `E2E_FPS_BUDGET_MS` to change the budget.
+- The frame-time test and the host-GPU look gate run alone, after the parallel shards, with one worker (`run-e2e.mjs`, tests whose title holds "frame-time budget"). Measure on a quiet GPU: close other Playwright runs, and turn off screen savers and other GPU users on the host. A failure in the 2026-10-30 review run came from another project's Playwright run and a screen saver that shared the GPU. The budget stays at 20 ms.
 
 ## 11. Accessibility
 
@@ -266,7 +272,8 @@ The smoke suite checks, for each page:
 5. The manifest is valid and linked. The service worker controls the page.
 6. After the worker is active, the page reloads offline and still renders.
 7. Frame-time budget (desktop Chromium).
-8. A visual baseline matches (seeded RNG, frozen clock with `?test=1`).
+8. Look gate at `?tier=high`: less than 3% clipped-white pixels (desktop Chromium, software GL in the shards, the host GPU in the frame-time pass).
+9. A visual baseline matches (seeded RNG, frozen clock with `?test=1`).
 
 Engines without WebGL on the host mark only the pixel check as `fixme`, with the reason.
 Visual baselines are in `e2e/screenshots/<project>-<platform>/`. A missing baseline is written on the first run.
@@ -283,18 +290,18 @@ Effort: S = about 1 week, M = 2 to 3 weeks, L = 4 weeks or more.
 | 3D Coloring | `499apps/game-coloring` | Built (G3): picture picker, fill, brush and rainbow tools, undo, autosave, PNG export |
 | 3D Snake | `499apps/game-snake` | Built (G2): easy, normal and fast modes |
 
-### Next: Catch the Starship
+### Next: Catch the Booster
 
 - Repo: `499apps/game-catch-the-booster`. Hub tile: "coming soon" (disabled).
-- Original design. No company names other than the generic title phrase. No logos, trade dress or exact likenesses.
-- Mechanic: a returning rocket booster descends with wind drift. The player slides the tower arm carriage and closes the two "chopstick" arms at the right time to catch it.
+- Original design. No space-company names (the game is "Catch the Booster", never a real vehicle name), no logos, no trade dress and no exact likenesses of real rockets, towers or launch sites.
+- Mechanic: a returning rocket booster descends with wind drift. The player slides the tower arm carriage and closes two padded catcher arms at the right time to catch it.
 - Descent: throttle bursts, gusts, a landing-burn window.
 - Scoring: softness of the catch and centring between the arms.
 - Miss: the booster bounces gently on a soft pad. No explosions.
 - Controls: drag or arrow keys slide the carriage; tap, Space or the A button closes the arms.
 - Kid-safe twist: a slow-motion "help" mode and a friendly ground crew that cheers.
 - 3D look: highly realistic and very polished: dusk lighting, heat shimmer, volumetric exhaust glow, detailed tower lattice.
-- Effort: L. The full design doc comes later as `docs/catch-the-starship.md`. Do not build it in this phase.
+- Effort: L. The full design doc comes later as `docs/catch-the-booster.md`. Do not build it in this phase.
 
 ### Next: Flip the Roadster
 
@@ -326,4 +333,4 @@ Effort: S = about 1 week, M = 2 to 3 weeks, L = 4 weeks or more.
 - G1 (this task): kit, hub, privacy page, assembly, local CI, game scaffolds, this plan.
 - G2 (done): the full 3D Snake in `game-snake`.
 - G3 (done): the full 3D Coloring in `game-coloring`.
-- Later: Catch the Starship design doc, then the game.
+- Later: Catch the Booster design doc, then the game.

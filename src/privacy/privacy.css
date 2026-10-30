@@ -9,11 +9,6 @@ body.g499-kind-page {
   background-attachment: fixed;
 }
 
-/* Phones: the drawer button sits at the top-left edge so it never covers text. */
-body.g499-kind-page .g499-drawer-toggle {
-  top: calc(10px + var(--g499-safe-top));
-}
-
 /* The rail width sits inside the left padding, so the text column centres beside the rail. */
 .privacy-main {
   max-width: calc(800px + var(--g499-rail-inset));

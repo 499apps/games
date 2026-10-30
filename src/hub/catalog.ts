@@ -46,7 +46,7 @@ export const GAMES: readonly GameEntry[] = [
   },
   {
     slug: 'catch-the-booster',
-    title: 'Catch the Starship',
+    title: 'Catch the Booster',
     href: null,
     status: 'soon',
     color: palette.lavender,

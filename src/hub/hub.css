@@ -37,10 +37,11 @@
   color: rgba(255, 247, 230, 0.75);
 }
 
-/* Phones: leave room for the left-edge drawer button. */
+/* Phones: centred title, clear of the top-left drawer button on both sides (symmetric). */
 @media (max-width: 719px) {
   .hub-title {
-    left: calc(16px + var(--g499-safe-left));
+    left: calc(72px + var(--g499-safe-left));
+    right: calc(72px + var(--g499-safe-right));
     text-align: center;
   }
 }

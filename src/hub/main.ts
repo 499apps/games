@@ -34,7 +34,8 @@ const stage = createStage({
   reducedMotion: shell.reducedMotion,
   label: 'A toy shelf with a game cartridge for each game',
   fallback: { title: '499apps Games', text: 'Pick a game from the buttons below.' },
-  renderer: { fov: 38 },
+  // Bloom only on real highlights (bulbs, the selected strip), not on the lit pastel shells.
+  renderer: { fov: 38, exposure: 0.95, bloom: { strength: 0.4, radius: 0.45, threshold: 1.15 } },
 });
 
 const scene = stage.kit
