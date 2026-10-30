@@ -161,3 +161,71 @@ The g5 blockers are gone. The board no longer washes out after a meal. A first-t
 - Garden boards, the speed cycle, the game-over card and the pause overlay are not in a shot.
 - The cause of S2-g7 is from code reading.
 - Swipe on a real phone.
+
+## Re-score after fixes (g8)
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-10-30 |
+| Pinned code | games-kit 94bac65, game-snake 00bfd8c (pinned in `games/games.lock.json:6`) |
+| Checked | New real-GPU shots (04:17) `shots/snake/phone-1-ready.png`, `phone-2-early.png`, `phone-3-midgame.png`, `desktop-1-ready.png`, `desktop-2-early.png`, `desktop-3-midgame.png`. `shots/timing-*.json`. CI baselines `game-snake/e2e/screenshots/iphone-win32/snake.png` and `games/e2e/screenshots/iphone-win32/site-snake.png`. Source: `game-snake/src/main.ts:211-216`, `scene.ts:136-212`, `game/board.ts:100-175`, `game/glow.ts`, `game/food.ts`, `game/glow.test.ts`. Operator G8-RESULTS. |
+| Not checked | Git history (I cannot run git). Audio. Game-over card, pause overlay, Garden boards. |
+
+### Verdict (g8)
+
+**SHIP. Overall 4.22 / 5 (g7: 4.04, g5: 3.64).**
+
+The three g7 look problems are fixed on the real GPU. The body reads green, the rim reads sky blue with no white halo, and the berry reads violet. No dimension is below 4. Two P3 polish items are new (S11, S12).
+
+### What I see in the new shots
+
+- All six shots: the body and the head are a strong green, close to `#2fc45a`. The darker bands show along the tube (`desktop-3-midgame.png`).
+- All six shots: the rim is a clear sky blue. The white neon frame and its wide glow are gone. The low rim height and the blue colour both show "edges wrap" again.
+- `phone-2-early.png`, `desktop-2-early.png`: the berry is a violet cluster with a mint leaf, not a white blob. On the phone it is about 17 CSS px wide, and its hue is close to the blue-violet tiles (S11).
+- `phone-1-ready.png`, `desktop-1-ready.png`: the apple is red with a soft glow. The Play button and the 56 px "Easy" button sit on the board.
+- `phone-3-midgame.png`, `desktop-3-midgame.png`: the gem is a clear blue diamond. The eye whites bloom to two white spots, so the pupils do not show (S12).
+- The CI baseline `iphone-win32/snake.png` (WebKit, software GL) shows the same green body and blue rim. The host GPU and the CI engine now agree.
+
+Note on tone mapping: G8 says 00bfd8c moved Snake from ACES to Neutral. My g7 text already lists Neutral and exposure 0.85 in `main.ts:211-217`. I cannot check the history without git. The code now has Neutral and 0.85 (`main.ts:213-214`). This does not change a score.
+
+### Scores (g8)
+
+Confidence: H = seen in shots and code, M = code or one run, L = inference.
+
+| # | Dimension | Weight | g7 | g8 | Evidence | Conf |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Core loop and clarity of goal | 15% | 4 | 4 | All three foods now read as coloured objects. The berry is small and close in hue to the board on phones (S11). | H |
+| 2 | Onboarding / first time | 12% | 5 | 5 | Ready in 1.42 s (desktop) and 1.60 s (phone) (`timing-*.json`). Easy default, 56 px speed button (`phone-1-ready.png`). | H |
+| 3 | Feedback and readability | 12% | 3 | 4 | Fixed: rim (S9), body (S2-g7), berry (S10). Open: berry hue contrast on phones (S11), eye-white bloom hides the gaze cue (S12). | H |
+| 4 | Pacing and session length | 8% | 4 | 4 | No change. | M |
+| 5 | Difficulty and fairness | 10% | 5 | 5 | No change. | M |
+| 6 | Game feel, juice, controls | 15% | 4 | 4 | No change. The meal flash still lights the rim: `rimLevel(1, 1)` = 0.72 (`glow.ts:23-25`). | M |
+| 7 | Replayability, non-manipulative retention | 8% | 4 | 4 | No change. | M |
+| 8 | Accessibility and inclusivity | 10% | 4 | 4 | The rim colour shows the mode again (sky blue, low rim for wrap). The berry is the weakest object for low vision (S11). | H |
+| 9 | Presentation, art, audio | 6% | 3 | 4 | Green snake, blue rim, deep blue-violet board, coloured food: one calm, toy-like look. Not 5: the scene is a little flat and dim, the eyes bloom (S12), audio not heard. | H |
+| 10 | Technical polish | 4% | 4 | 4 | 165 unit, 43 e2e, 0 failed, 0 flaky, 4 skipped, 189.3 s, with the host-GPU look gate and frame time. Not 5: no colour probe yet, so a return of the pale body would still pass CI (K9). | H |
+| | **Weighted overall** | | **4.04** | **4.22** | 0.15x4 + 0.12x5 + 0.12x4 + 0.08x4 + 0.10x5 + 0.15x4 + 0.08x4 + 0.10x4 + 0.06x4 + 0.04x4 | |
+
+### g7 open items
+
+| ID | Status | Evidence |
+| --- | --- | --- |
+| S9 | FIXED | `rimLevel` = `0.08 + 0.14 * glow + 0.5 * flash` (`game-snake/src/game/glow.ts:23-25`). Colour `mixHex(palette.sky, palette.night, 0.25)` or `mixHex(palette.bubblegum, palette.night, 0.2)` (`board.ts:156`). Clearcoat 0.4, env 0.35 (`board.ts:101-108`). Sky-blue rim, no halo in all six shots. The rim-hue probe (K9) is not added. |
+| S2-g7 | FIXED | Hemi 0.7, fill 10 (`scene.ts:143-145`). Body clearcoat 0.5, env 0.3 (`scene.ts:182-189`). Head the same (`scene.ts:208-211`). Green in all six shots and in `iphone-win32/snake.png`. The head probe (K9) is not added. |
+| S10 | FIXED | `BERRY_COLOR = '#8f5bf0'` (`food.ts:14`), emissive 0.15, env 0.5 (`food.ts:91-92`). Violet in `phone-2-early.png` and `desktop-2-early.png`. See S11 for the remaining contrast. |
+| S6 | OPEN | No swipe cue. P3. |
+
+### New findings (g8)
+
+| ID | Sev | Finding | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| S11 | P3 | On phones the berry is a small violet cluster on blue-violet tiles. It reads by its mint leaf more than by its colour. The apple and the gem stand out more. | `phone-2-early.png` (about 17 CSS px wide, centre). `#8f5bf0` has a hue near 263 degrees; the tiles are near 250 degrees (`board.ts:54-55`). | In `game-snake/src/game/food.ts:14` try a magenta violet, for example `#b84ee0`, to move the hue away from the tiles. In `food.ts:89-110` scale the berry group by 1.15. Keep emissive 0.15. Check deltaE to the tile colour is above 30 with the K9 probe. |
+| S12 | P3 | The eye whites bloom to two white spots on the real GPU. The pupils do not show, so the "eyes look at the food" cue is weak in some frames. | `desktop-3-midgame.png`, `phone-3-midgame.png`, `desktop-1-ready.png`. Eye whites use `candyMaterial(palette.white, { clearcoat: 1 })` with the default env 0.9 (`game-snake/src/game/head.ts:50`, `src/kit/scene-helpers.ts:78-83`). | In `game-snake/src/game/head.ts:50` use `mixHex(palette.white, palette.cream, 0.25)`, `clearcoat: 0.4`, and set `envMapIntensity = 0.3`. Check that the pupils show in `desktop-3-midgame.png`. |
+
+### UNVERIFIED (g8)
+
+- Audio.
+- Garden boards, Fast mode, the game-over card and the pause overlay are not in a shot.
+- The earlier tone-mapping state (see the note above).
+- The desktop bot ate 4 and scored 50 (g7: 4 and 100). The combo timing is different between runs. I did not check why. It does not affect a score.
+- The site-snake visual baselines are being regenerated. `iphone-win32/site-snake.png` already shows the new look. The `ci:site` rerun result is not in.

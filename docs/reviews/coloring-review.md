@@ -152,3 +152,22 @@ This was the strongest game and it is now clearly ready. The paint on the easel 
 - "All done!" and the next-picture button.
 - Small-part taps with a real child's finger.
 - The deltaE number comes from the operator's e2e run. I did not run it.
+
+## Re-score after fixes (g8)
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-10-30 |
+| Pinned code | games-kit 94bac65, game-coloring 25759fc (unchanged since g7; pinned in `games/games.lock.json:11`) |
+| Checked | New real-GPU shots (04:17) `shots/coloring/desktop-2-painted.png`, `phone-3-palette.png`, and the other four. `shots/timing-*.json`: ready in 889 ms (desktop) and 818 ms (phone), 12 taps on both. Operator G8-RESULTS: `ci:site` failures are hub and snake baselines only. |
+
+### Verdict (g8)
+
+**SHIP. Overall 4.37 / 5 (no change).**
+
+The code did not change and the new shots match my g7 notes. The paint matches the swatches. The two P3 items are still visible:
+
+- C7 OPEN: in `desktop-2-painted.png` the sky blue is still lighter at the left and right paper edges.
+- C8 OPEN: in `phone-3-palette.png` the current-colour swatch in the tray still shows lemon as olive under the scrim.
+
+No new findings. The g7 score table stands: 5, 5, 4, 4, 5, 4, 4, 4, 4, 4.

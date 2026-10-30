@@ -4,6 +4,8 @@ Source: `hub-review.md`, `snake-review.md`, `coloring-review.md` in this folder.
 
 g7 re-check (2026-10-30, games-kit 94bac65, game-snake ba4913f, game-coloring 25759fc, games 0599f35): a tick means the fix is verified in the code and, where possible, in the new real-GPU shots. An item that g6 ticked but g7 found only partly fixed is unticked again, with the reason. New work is in "g7 open items" at the end.
 
+g8 re-check (2026-10-30, games-kit 94bac65, game-snake 00bfd8c, game-coloring 25759fc, games c69a27b): a tick means the fix is verified in the code and in the 04:17 real-GPU shots. Each open item has a one-line g8 reason. New work is in "g8 open items" at the end. No P0 or P1 is open. No rubric dimension is below 4.
+
 This list holds every P0, P1 and P2 finding and every rubric dimension below 4. P3 items are at the end. No P0 was found.
 
 Severity: P0 blocks release. P1 fix before ship. P2 fix soon after, or before ship if cheap. P3 polish.
@@ -48,18 +50,20 @@ g7: K1 to K8 are verified in code: `theme.ts:42,48,51-52,58`, `scene-helpers.ts:
 
 ## Hub (`games/`)
 
-- [ ] **H1 (P1) Tiles are blown out (Coloring tile almost white, Snake tile pale).** Dimensions 3 and 9.
+- [x] **H1 (P1) Tiles are blown out (Coloring tile almost white, Snake tile pale).** Dimensions 3 and 9.
   - `games/src/hub/main.ts:31-38`: `renderer: { fov: 38, exposure: 0.95, bloom: { strength: 0.4, radius: 0.45, threshold: 1.15 } }`.
   - `games/src/hub/scene.ts:241`: shell `clearcoat` 0.6, `envMapIntensity` 0.45; mix the shell colour 12% toward `palette.night`.
   - `games/src/hub/scene.ts:650`: `2.4 * rig.sel` to `1.0 * rig.sel`.
   - Check with K2. Budget: `clipped` below 3% on the landing page.
   - Done, plus the marquee bar emissive 1.1 to 0.6 and the bulbs a little lower.
   - g7: PARTLY. The shells are fixed (`scene.ts:47,244-247,664`). The previews inside the tiles are still milky on the real GPU (`shots/hub/desktop-1-landing.png`). Now P2. See H1b in "g7 open items".
-- [ ] **H2 (P1) Frame time 33.3 ms on Intel UHD (budget 20 ms).** Dimension 10.
+  - g8: verified with H1b (`desktop-1-landing.png`). Residual halo is H11 (P3).
+- [x] **H2 (P1) Frame time 33.3 ms on Intel UHD (budget 20 ms).** Dimension 10.
   - [x] K1 (sheen 0), K6, K7.
   - [x] `games/src/hub/scene.ts`: set `kit.renderer.shadowMap.autoUpdate = false`. Set `kit.renderer.shadowMap.needsUpdate = true` on layout, on selection change and every 4th frame. (Also at once when a tier change drops the shadow map.)
   - [x] Measure again on the same host with a quiet GPU. Write the result in `hub-review.md`. (Done in g7: 16.7 ms on a quiet GPU; 33.3 ms with the GPU shared, in `ci:local` and `ci:site`.)
   - g7: PARTLY. Still fails when the GPU is shared; Snake and Coloring pass in the same pass. Now P2. See H2-g7 in "g7 open items".
+  - g8: the hub frame-time budget passed in `ci:local` (68 e2e, 0 failed). Headroom is still not measured (K10).
 - [x] **H3 (P2) The coming-soon tile used a real space company's vehicle name.** Decided by the owner: the game is called "Catch the Booster", with no space-company names or trade dress.
   - g7: verified (`games/src/hub/catalog.ts:49`, `catalog.test.ts:63-67`, pill "Booster" in the landing shots).
   - [x] `games/src/hub/catalog.ts` title is "Catch the Booster". The `games/index.html` tile says "Booster". Slug `catch-the-booster` is unchanged.
@@ -68,9 +72,9 @@ g7: K1 to K8 are verified in code: `theme.ts:42,48,51-52,58`, `scene-helpers.ts:
 - [x] **H4 (P2) Rail labels cut off.** See K3. g7: verified in `desktop-1-landing.png`.
 - [x] **H5 (P2) Drawer close 44 px.** See K4. g7: verified in code (`games-kit/src/styles.css:380-381`).
 - [x] **Dimension 8 (3/5) Accessibility.** Covered by H1, K3, K4, K5. (Phone title now clears the top-left button on both sides.) g7: now 4/5.
-- [ ] **Dimension 9 (3/5) Presentation.** Covered by H1. g7: still 3/5. The tile art does not read well on the real GPU (milky previews, hard marquee bar). See H1b, H9.
-- [ ] **Dimension 10 (3/5) Technical polish.** Covered by H2. g7: still 3/5. The frame time fails when the GPU is shared. See H2-g7, K10.
-- [ ] **Dimension 3 (3/5) Feedback.** g7: still 3/5. The selected Coloring tile shows a near-white palette on a pale yellow screen. See H1b.
+- [x] **Dimension 9 (3/5) Presentation.** Covered by H1. g7: still 3/5. The tile art does not read well on the real GPU (milky previews, hard marquee bar). See H1b, H9. g8: now 4/5. The art reads; H9 and H11 are P3 polish.
+- [x] **Dimension 10 (3/5) Technical polish.** Covered by H2. g7: still 3/5. The frame time fails when the GPU is shared. See H2-g7, K10. g8: now 4/5 (frame time green). K10, H12 and H13 keep it below 5.
+- [x] **Dimension 3 (3/5) Feedback.** g7: still 3/5. The selected Coloring tile shows a near-white palette on a pale yellow screen. See H1b. g8: now 4/5. Five clear dabs on the palette.
 
 ## Snake (`game-snake/`)
 
@@ -79,12 +83,13 @@ g7: K1 to K8 are verified in code: `theme.ts:42,48,51-52,58`, `scene-helpers.ts:
   - Flash the rim and a small ring at the eaten cell, not the full grid.
   - `game-snake/src/scene.ts:496`: cap the bloom pulse at x1.15.
   - g7: verified (`game-snake/src/game/glow.ts:10-31`; no wash in `shots/snake/phone-2-early.png`).
-- [ ] **S2 (P2) Pale snake on a pink-lavender board on phones.** Dimensions 3, 8, 9.
+- [x] **S2 (P2) Pale snake on a pink-lavender board on phones.** Dimensions 3, 8, 9.
   - K1.
   - `game-snake/src/scene.ts:131-136`: after `addStudioLights`, set `lights.fill.intensity = 10`.
   - `game-snake/src/game/board.ts:46-51`: tile `envMapIntensity` 0.2, `roughness` 0.6.
   - Check with K2. The board should read deep indigo, as `board.ts:4` says.
   - g7: PARTLY. The board now reads blue-violet. The body still reads pale mint in every shot and in the CI baseline. See S2-g7.
+  - g8: verified with S2-g7. The body is green in all six shots.
 - [x] **S3 (P2) Gem food renders as a white blob.** Dimension 3.
   - `game-snake/src/game/food.ts:67-77`: emissive 0.2, `envMapIntensity` 0.6, colour `#3d8bfd`.
   - g7: verified for the gem (`phone-3-midgame.png`). The berry is now a white blob: see S10.
@@ -100,8 +105,8 @@ g7: K1 to K8 are verified in code: `theme.ts:42,48,51-52,58`, `scene-helpers.ts:
   - Done: "Garden" in the left menu (off by default, `g499:snake:garden`). 6 seeded bushes, clear of the edges, the start rows and each other. A bush bump is a gentle stop. Own best score per mode. Property tests in `logic.test.ts`.
   - g7: verified in code; now 4/5. Garden is not in a shot.
 - [x] **Dimension 8 (3/5) Accessibility.** Covered by S1, S2, S4, S5, K3, K4. g7: now 4/5.
-- [ ] **Dimension 9 (3/5) Presentation.** Covered by S1, S2, S3. g7: still 3/5 on the real-GPU shots (white rim, pale body, white berry). See S9, S2-g7, S10.
-- [ ] **Dimension 3 (3/5) Feedback.** g7: still 3/5 for the same three reasons.
+- [x] **Dimension 9 (3/5) Presentation.** Covered by S1, S2, S3. g7: still 3/5 on the real-GPU shots (white rim, pale body, white berry). See S9, S2-g7, S10. g8: now 4/5.
+- [x] **Dimension 3 (3/5) Feedback.** g7: still 3/5 for the same three reasons. g8: now 4/5. S11 and S12 are P3.
 
 ## Coloring (`game-coloring/`)
 
@@ -133,9 +138,9 @@ g7: K1 to K8 are verified in code: `theme.ts:42,48,51-52,58`, `scene-helpers.ts:
 ## P3 (polish, not required for ship)
 
 - [x] H6: same drawer button position on every page (done by K5; the privacy page override is removed).
-- [ ] H7: in portrait, scale "soon" tiles to 0.75 (`games/src/hub/layout.ts`). Not done (P3). g7: still open, the locked tile has its own row in `phone-1-landing.png`.
+- [ ] H7: in portrait, scale "soon" tiles to 0.75 (`games/src/hub/layout.ts`). Not done (P3). g7: still open, the locked tile has its own row in `phone-1-landing.png`. g8 OPEN: not in scope of c69a27b; unchanged in `phone-1-landing.png`.
 - [x] H8: write why the CSP has no `frame-ancestors` (`games/docs/PLAN.md` section 4). Test: `games-kit/src/csp.test.ts`.
-- [ ] S6: first-round ghost-finger swipe cue (`game-snake/src/main.ts`), skipped with reduced motion. Not done (P3).
+- [ ] S6: first-round ghost-finger swipe cue (`game-snake/src/main.ts`), skipped with reduced motion. Not done (P3). g8 OPEN: not in scope of 00bfd8c; the d-pad covers the need.
 - [x] S7, C5: cut-off labels (done by K3; the Snake d-pad label is now "D-pad").
 - [x] C6: one tray column on phones after K5 (`game-coloring/src/game.css:151-171`).
 - [x] Docs: `games/docs/PLAN.md:204` says Snake is lime; the code uses `#2fc45a` (`game-snake/src/scene.ts:51-55`). Update the table.
@@ -150,45 +155,47 @@ These items keep a score below 4/5, or they are new from g7. Details and evidenc
   - Move `game-coloring/src/game/color-diff.ts` (CIE76) to `games-kit/src/color-diff.ts`. Keep its unit tests.
   - In `games-kit/src/smoke/suite.ts` add an optional per-page `colorProbes` list to `SmokeTarget`: `{ name, at: () => {x, y} via window.__g499, expect: '#rrggbb', maxDeltaE }`. Run it in the two look-gate tests (`suite.ts:205-248`).
   - Probes: Snake head `#2fc45a` (max 15), Snake rim hue, hub Coloring palette dab `palette.coral` (max 15). Coloring already has its C1 test.
-- [ ] **K10 (P2) The frame-time test cannot show headroom.** The median is 16.7 or 33.3 ms (vsync steps).
+  - g8 OPEN: not done (kit unchanged at 94bac65). The look fixes were checked by eye only, so a return of the pale snake or milky tiles would still pass CI. H12 shows the risk.
+- [ ] **K10 (P2) The frame-time test cannot show headroom.** The median is 16.7 or 33.3 ms (vsync steps). g8 OPEN: not done; the hub passed, but the margin is unknown.
   - In `games-kit/src/renderer.ts` time each `render()` call with `performance.now()` and expose the last 120 values through the test API (`games-kit/src/test-mode.ts`).
   - In `games-kit/src/smoke/suite.ts:250-282` report the CPU render median and the p90 frame time in the annotation. Assert the CPU render median is at most 8 ms.
 - [ ] **K11 (P2, for H2-g7) Cheaper materials at tier low.** In `games-kit/src/scene-helpers.ts:78-83` let `candyMaterial` use `clearcoat: 0` when the kit runs at tier low. Set the flag from `games-kit/src/quality.ts` on each tier change, and update existing materials when the tier changes.
+  - g8 PARTLY: done in the hub only (`games/src/hub/scene.ts:714-725`), not in the kit. Snake and Coloring pass their budgets without it. Watch the recompile hitch (H13) before you move it to the kit.
 
 ### Hub (`games/`)
 
-- [ ] **H1b (P2) Previews inside the tiles are milky.** Dimensions 3 and 9.
+- [x] **H1b (P2) Previews inside the tiles are milky.** Dimensions 3 and 9. g8: verified (`games/src/hub/main.ts:40`, `scene.ts:71,134,255-265,288-296,672-673`; clear art in `desktop-1-landing.png`). Check with K9 is still open.
   - `games/src/hub/main.ts:38`: add `toneMapping: THREE.NeutralToneMapping`.
   - `games/src/hub/scene.ts`: every preview material `clearcoat: 0.3`, `envMapIntensity: 0.35`. Palette board `mixHex(palette.cream, palette.tangerine, 0.3)` (`scene.ts:71`). Snake preview body `#2fc45a` (`scene.ts:133`).
   - `games/src/hub/scene.ts:662-663`: screen glow `0.14 + 0.15 * rig.sel + pulse`, pulse amplitude 0.05.
   - Check with K9.
-- [ ] **H2-g7 (P2) Frame time fails when the GPU is shared.** Dimension 10.
+- [x] **H2-g7 (P2) Frame time fails when the GPU is shared.** Dimension 10. g8: verified in one run. Unlit bulbs (`scene.ts:432-443`, accepted instead of `InstancedMesh`), no clearcoat at tier low (`scene.ts:714-725`), budget green in `ci:local`. K10 still open.
   - K10 and K11.
   - `games/src/hub/scene.ts:420-434`: draw the 14 bulbs as one `InstancedMesh` with `instanceColor`; scale each colour for the pulse.
   - Measure again with K10. Target: CPU render median at most 8 ms, frame-time median at most 20 ms with another Playwright run on the GPU.
-- [ ] **H9 (P3) Marquee bar glows hard.** `games/src/hub/scene.ts:409-416`: colour `mixHex(palette.lemon, palette.tangerine, 0.4)`, `emissiveIntensity: 0.3`, `clearcoat: 0.3`.
-- [ ] **H10 (P3) Personal initials in a test comment.** `games/src/hub/catalog.test.ts:64`: write "The owner renamed ...". The g5 text of `hub-review.md:26` has the same initials; change it only if the owner accepts an edit to the g5 text.
+- [ ] **H9 (P3) Marquee bar glows hard.** `games/src/hub/scene.ts:409-416`: colour `mixHex(palette.lemon, palette.tangerine, 0.4)`, `emissiveIntensity: 0.3`, `clearcoat: 0.3`. g8 PARTLY: done as asked (`scene.ts:419-429`), no white rim; the bar is still the brightest wide shape. See g8 open items.
+- [ ] **H10 (P3) Personal initials in a test comment.** `games/src/hub/catalog.test.ts:64`: write "The owner renamed ...". The g5 text of `hub-review.md:26` has the same initials; change it only if the owner accepts an edit to the g5 text. g8 PARTLY: the code is fixed (`catalog.test.ts:64`); `hub-review.md:26` still has the initials, waiting for the owner.
 
 ### Snake (`game-snake/`)
 
-- [ ] **S9 (P2) White neon rim hides the mode colour.** Dimensions 3, 8 and 9.
+- [x] **S9 (P2) White neon rim hides the mode colour.** Dimensions 3, 8 and 9. g8: verified (`game-snake/src/game/glow.ts:23-25`, `board.ts:101-108,156`; sky-blue rim, no halo in all six shots). The K9 rim probe is still open.
   - `game-snake/src/game/glow.ts:24`: `0.1 + 0.15 * glow + 0.45 * flash`. Update `glow.test.ts`.
   - `game-snake/src/game/board.ts:152`: `mixHex(palette.sky, palette.night, 0.25)` and `mixHex(palette.bubblegum, palette.night, 0.2)`.
   - `game-snake/src/game/board.ts:101-105`: add `clearcoat: 0.4`, then set `envMapIntensity = 0.35`.
   - Check with a K9 rim-hue probe.
-- [ ] **S2-g7 (P2) Body reads pale mint.** Dimensions 3 and 9.
+- [x] **S2-g7 (P2) Body reads pale mint.** Dimensions 3 and 9. g8: verified (`game-snake/src/scene.ts:143-145,182-189,208-211`; green in all six shots and in `iphone-win32/snake.png`). The K9 head probe is still open.
   - `game-snake/src/scene.ts:143`: also set `lights.hemi.intensity = 0.7`.
   - `game-snake/src/scene.ts:185-187` and `207-209`: clearcoat 0.5, `envMapIntensity` 0.3.
   - Check with a K9 head probe (`#2fc45a`, deltaE below 15).
-- [ ] **S10 (P2) Berry reads as a white blob.** Dimension 3.
+- [x] **S10 (P2) Berry reads as a white blob.** Dimension 3. g8: verified (`game-snake/src/game/food.ts:14,91-92`; violet in `phone-2-early.png`). Remaining hue contrast: S11 (P3).
   - `game-snake/src/game/food.ts:16,89`: colour `#8f5bf0`, `emissiveIntensity: 0.15`, `envMapIntensity: 0.5`.
 
 ### Coloring (`game-coloring/`)
 
 All dimensions are 4/5 or more. Polish only:
 
-- [ ] **C7 (P3) Paint lighter at the paper edges.** `game-coloring/src/easel.ts:44-45`: try `CANVAS_DIFFUSE = 0.15`, `CANVAS_GLOW = 1.0`. Keep the C1 deltaE below 8.
-- [ ] **C8 (P3) The palette scrim dims the current-colour swatch.** `game-coloring/src/game.css`: put the current-colour swatch above the scrim, or keep the tray out of the scrim.
+- [ ] **C7 (P3) Paint lighter at the paper edges.** `game-coloring/src/easel.ts:44-45`: try `CANVAS_DIFFUSE = 0.15`, `CANVAS_GLOW = 1.0`. Keep the C1 deltaE below 8. g8 OPEN: coloring not changed; still visible in `desktop-2-painted.png`.
+- [ ] **C8 (P3) The palette scrim dims the current-colour swatch.** `game-coloring/src/game.css`: put the current-colour swatch above the scrim, or keep the tray out of the scrim. g8 OPEN: coloring not changed; lemon still shows olive in `phone-3-palette.png`.
 
 ### Order of work (g7)
 
@@ -196,6 +203,59 @@ All dimensions are 4/5 or more. Polish only:
 K9 (colour probes) + K10 (render timing)  -->  H1b, S9, S2-g7, S10 (tune, check with K9)
 K11 (cheap materials) + bulbs instancing  -->  H2-g7 (measure with K10)
 H9, H10, C7, C8, H7, S6                   -->  any time
+```
+
+## g8 open items
+
+No rubric dimension is below 4/5, and no P0 or P1 is open. The items below keep scores below 5 or are new in g8. Details and evidence are in the "Re-score after fixes (g8)" section of each review.
+
+### Must do before calling the hub done
+
+- [ ] **H12 (P2) The iPhone hub baselines still show the old milky look.** `games/e2e/screenshots/iphone-win32/hub.png` and `site-hub.png`. Desktop Chromium, WebKit and Pixel baselines show the new look.
+  - Operator, in `games/`: `pnpm exec playwright test --project=iphone --update-snapshots -g hub`. Open the new image.
+  - Green and clear: commit it and close H12.
+  - Still milky: compare tier and pixel ratio between the iPhone and Pixel projects, then fix the mobile path from `games/src/hub/main.ts:40`.
+  - The 2% visual tolerance (`games-kit/src/smoke/projects.ts:114`) can hide a preview-only change. K9 closes that gap.
+- [ ] **ci:site rerun.** Regenerate the site-hub and site-snake baselines on purpose, look at each one, then run `pnpm ci:site` again. Ship after it is green.
+
+### Kit (carried from g7)
+
+- [ ] **K9 (P2)** Colour probes. Not done. It is now the main gap: every g8 look fix is checked by eye only.
+- [ ] **K10 (P2)** CPU render time and p90 in the frame-time test. Not done.
+- [ ] **K11 (P2)** Kit-level cheap materials at tier low. Hub only so far. Do H13 first.
+
+### Hub (`games/`)
+
+- [ ] **H11 (P3) Palette halo and olive screen on the Coloring tile.**
+  - `games/src/hub/scene.ts:256,262`: use `entry.color` for the screen colour and emissive, not `entry.accent` (lemon on ink makes olive).
+  - `games/src/hub/scene.ts:71`: palette board `mixHex(mixHex(palette.cream, palette.tangerine, 0.35), palette.night, 0.12)`.
+- [ ] **H13 (P3) Tier switch can recompile every physical shader.** Setting `clearcoat` across 0 bumps `material.version` (`games/src/hub/scene.ts:714-725`).
+  - Measure the hitch with K10. If it is below one frame, close H13.
+  - Else, after the first frame: set clearcoat 0, `await kit.renderer.compileAsync(kit.scene, kit.camera)`, restore the values.
+- [ ] **H9 (P3) Marquee bar still the brightest wide shape.** `games/src/hub/scene.ts:425`: try `emissiveIntensity: 0.15`, and mix the colour 15% toward `palette.night`.
+- [ ] **H10 (P3)** Initials in `hub-review.md:26` (g5 text). Owner decision.
+- [ ] **H7 (P3)** Locked tile row on phones (`games/src/hub/layout.ts`).
+
+### Snake (`game-snake/`)
+
+- [ ] **S11 (P3) Berry hue is close to the board on phones.**
+  - `game-snake/src/game/food.ts:14`: try `#b84ee0` (farther from the tile hue near 250 degrees).
+  - `game-snake/src/game/food.ts:89-110`: scale the berry group by 1.15.
+  - Check: deltaE to the tile colour above 30 (K9).
+- [ ] **S12 (P3) Eye whites bloom; pupils hidden.** `game-snake/src/game/head.ts:50`: colour `mixHex(palette.white, palette.cream, 0.25)`, `clearcoat: 0.4`, then `envMapIntensity = 0.3`.
+- [ ] **S6 (P3)** First-round swipe cue.
+
+### Coloring (`game-coloring/`)
+
+- [ ] **C7 (P3)**, **C8 (P3)**: unchanged from g7.
+
+### Order of work (g8)
+
+```text
+H12 check + site baselines  -->  ci:site green  -->  SHIP
+K9 (probes)                 -->  S11, H11 (tune, check with K9)
+K10 (render timing)         -->  H13, then K11
+H9, H10, H7, S6, S12, C7, C8  -->  any time
 ```
 
 ## Operator commands after the fixes

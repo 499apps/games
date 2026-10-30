@@ -176,3 +176,70 @@ The hub is a menu. A drop to 30 fps under load does not break play, so I rate it
 - The open drawer at 56 px.
 - The true GPU time per frame. The median hides it (K10).
 - The cause of the milky previews is from code reading and the two CI baselines. Confirm it with K9 before and after the H1b change.
+
+## Re-score after fixes (g8)
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-10-30 |
+| Pinned code | games-kit 94bac65, games c69a27b. Lock file pins snake 00bfd8c and coloring 25759fc (`games/games.lock.json:6,11`). |
+| Checked | New real-GPU shots (04:17) `shots/hub/desktop-1-landing.png`, `phone-1-landing.png`. `shots/timing-*.json`. CI baselines `games/e2e/screenshots/{chromium,webkit,pixel,iphone}-win32/hub.png` and `iphone-win32/site-hub.png`. Source: `games/src/hub/main.ts:40`, `scene.ts:55-150,240-325,414-444,640-725`, `catalog.ts:26-55`, `catalog.test.ts:64`, `games/src/kit/smoke/{projects,helpers}.ts`. Operator G8-RESULTS. |
+| Not checked | Git history. Audio. The `ci:site` rerun (in progress). |
+
+### Verdict (g8)
+
+**SHIP (after the `ci:site` rerun is green). Overall 4.00 / 5 (g7: 3.78, g5: 3.68).**
+
+The tile art now reads on the real GPU. The Snake tile shows a deep green coil and a red apple. The Coloring tile shows a palette with five clear dabs and a brush. The rocket tile was already good. The frame-time budget passed in `ci:local`. Every dimension is now 4. The hub is clean but not yet a "banger": the selected Coloring palette still has a soft halo on a muddy olive screen, and the marquee bar is the brightest wide shape on the page (H11, H9). One CI risk needs a check: the iPhone baseline still looks like the old milky hub (H12).
+
+### What I see in the new shots
+
+- `desktop-1-landing.png`: the Snake preview is a strong green coil on a dark green screen. The Coloring palette is cream-tangerine with red, yellow, green, blue and pink dabs. A soft cream halo sits around the palette, and the screen behind it is olive brown. The marquee bar is a warm orange tube, not white. A thin white highlight runs along the top of the glass sign.
+- `phone-1-landing.png`: the same look at phone size. The art reads. The locked tile still has its own row (H7). The drawer button is top-left.
+- `chromium-win32/hub.png` (software GL, tier low, no bloom, no clearcoat): the new colours, very clean. This is the best image of the hub.
+- `webkit-win32/hub.png` (desktop WebKit): the new colours, with the same palette halo as the host GPU.
+- `iphone-win32/hub.png` and `iphone-win32/site-hub.png` (WebKit, iPhone 15 emulation): both still show a white palette and a pale mint coil, like g7. See H12.
+
+### Scores (g8)
+
+Confidence: H = seen in shots and code, M = code or one run, L = inference.
+
+| # | Dimension | Weight | g7 | g8 | Evidence | Conf |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Core loop and clarity of goal | 15% | 4 | 4 | One tap to a game. The tile art now tells the child what each game is. | H |
+| 2 | Onboarding / first time | 12% | 4 | 4 | Ready in 1.23 s (desktop) and 1.26 s (phone) (`timing-*.json`). | H |
+| 3 | Feedback and readability | 12% | 3 | 4 | The selected tile lifts and glows without a white veil: screen `0.14 + 0.15 * sel + 0.08 * hover + pulse`, pulse 0.05 (`scene.ts:672-673`). Palette halo remains (H11). | H |
+| 4 | Pacing and session length | 8% | 4 | 4 | No change. | M |
+| 5 | Difficulty and fairness | 10% | 4 | 4 | No change. | M |
+| 6 | Game feel, juice, controls | 15% | 4 | 4 | No change. | M |
+| 7 | Replayability, non-manipulative retention | 8% | 4 | 4 | No change. | H |
+| 8 | Accessibility and inclusivity | 10% | 4 | 4 | No change. The art contrast is better. | H |
+| 9 | Presentation, art, audio | 6% | 3 | 4 | Clear tile art, warm marquee, toy shelf. Not 5: palette halo and olive screen (H11), marquee bar still the brightest wide shape (H9), locked tile row on phones (H7). Audio not heard. | H |
+| 10 | Technical polish | 4% | 3 | 4 | 110 unit, 68 e2e, 0 failed, 0 flaky, 4 skipped, 189.5 s, with the frame-time budget green (it failed in g7). `ci:site` 126 passed, 9 failed (visual baselines only, rerun pending). Not 5: one green run, no headroom number (K10), recompile hitch risk (H13), iPhone baseline doubt (H12). | M |
+| | **Weighted overall** | | **3.78** | **4.00** | 0.15x4 + 0.12x4 + 0.12x4 + 0.08x4 + 0.10x4 + 0.15x4 + 0.08x4 + 0.10x4 + 0.06x4 + 0.04x4 | |
+
+### g7 open items
+
+| ID | Status | Evidence |
+| --- | --- | --- |
+| H1b | FIXED | Neutral tone mapping, exposure 0.85, bloom 0.4 / 0.45 / 1.15 (`games/src/hub/main.ts:40`). Preview clearcoat at most 0.3, env 0.35 (`scene.ts:288-296`). Palette board `mixHex(palette.cream, palette.tangerine, 0.3)` (`scene.ts:71`). Snake preview `#2fc45a` (`scene.ts:134`). Screen roughness 0.3, clearcoat 0.35, env 0.35 (`scene.ts:255-265`). Art reads in `desktop-1-landing.png`. Residual halo: H11. |
+| H2-g7 | FIXED (one run) | Bulbs are `MeshBasicMaterial` (`scene.ts:432-443`). At tier low every physical material drops clearcoat (`scene.ts:714-725`). The hub frame-time budget passed in `ci:local`. I asked for an `InstancedMesh`; 14 unlit bulbs are cheap, so I accept this. Headroom is still not measured (K10). New risk: H13. |
+| H9 | PARTLY | Colour `mixHex(palette.lemon, palette.tangerine, 0.4)`, emissive 0.3, clearcoat 0.3 (`scene.ts:419-429`), as asked. The white rim is gone. The bar is still a solid saturated orange stripe across the full width, the brightest wide shape on the page (`desktop-1-landing.png`). P3. |
+| H10 | PARTLY | Code fixed: "The owner renamed ..." (`games/src/hub/catalog.test.ts:64`). The initials stay in the g5 text of this file (line 26). I keep earlier text unchanged, so the owner must decide. P3. |
+| H7 | OPEN | The locked tile still has its own row (`phone-1-landing.png`). P3. |
+
+### New findings (g8)
+
+| ID | Sev | Finding | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| H12 | P2 | The iPhone CI baselines still show the old milky hub (white palette, pale mint coil). The desktop Chromium, WebKit and Pixel baselines show the new look. Either the iPhone baseline is stale and still passes, or the iPhone path really renders the previews too bright. iPhones are first-class, so check it. | `games/e2e/screenshots/iphone-win32/hub.png` and `site-hub.png` look the same as in g7. `webkit-win32/hub.png` is new. The iPhone project runs on WebKit (`games/src/kit/smoke/projects.ts:66-71`). The visual gate allows 2% of pixels to differ (`projects.ts:114`). The two previews cover only about 5% of the iPhone frame, and only pixels past the colour threshold count. A preview-only change can pass. | Operator: in `games/` run `pnpm exec playwright test --project=iphone --update-snapshots -g hub`, then open the new `iphone-win32/hub.png`. If it is green and clear, commit it and close H12. If it is still milky, compare `window.__g499` tier and pixel ratio between the iPhone and Pixel projects, and fix the mobile path in `games/src/hub/main.ts:40`. In both cases add the K9 hub probe so the gate catches preview colour, not only near-white pixels. |
+| H11 | P3 | The selected Coloring palette has a soft cream halo, and its screen is olive brown. The palette is the brightest object on the shelf, and the olive screen looks muddy next to the clean Snake screen. | `desktop-1-landing.png`, `phone-1-landing.png`, `webkit-win32/hub.png`. The screen uses `mixHex(palette.ink, entry.accent, 0.12)` with a lemon emissive (`scene.ts:256,262`; Coloring accent `palette.lemon`, `catalog.ts:33`). Lemon on ink makes olive. The cream board under the key light passes the bloom threshold 1.15. | In `games/src/hub/scene.ts:256,262` use `entry.color` (the shell hue) for the screen colour and emissive, not `entry.accent`. The strip keeps the accent. In `scene.ts:71` use `mixHex(mixHex(palette.cream, palette.tangerine, 0.35), palette.night, 0.12)` for the palette board. Check that no halo shows in `desktop-1-landing.png`. |
+| H13 | P3 | The tier switch can cause a hitch. In three.js, setting `clearcoat` across 0 bumps `material.version`, so every physical material compiles a new shader. This happens when the tier drops, which is when the GPU is already slow. | `games/src/hub/scene.ts:714-725`. Code reading (three.js `MeshPhysicalMaterial` clearcoat setter). Not measured. | Measure the hitch with K10 first; if it is below one frame, close H13. Else warm both shader sets at load in `games/src/hub/scene.ts`: after the first frame, set clearcoat 0 on the physical materials, `await this.kit.renderer.compileAsync(this.kit.scene, this.kit.camera)`, then restore the values. The later switch then finds both programs in the cache. Do the same in the kit when K11 lands. |
+
+### UNVERIFIED (g8)
+
+- Audio.
+- The `ci:site` rerun after the baseline update.
+- H12: stale baseline or real render. I cannot tell from the files alone.
+- H13 is from code reading. I did not measure a hitch.
+- Frame-time headroom (K10). One green run does not show the margin.
