@@ -121,7 +121,7 @@ CAUTION: Do not add a `.github/workflows` folder to any repo. All CI is local.
 | Key | Owner | Contents |
 | --- | --- | --- |
 | `g499:mute` | kit | Sound on or off |
-| `g499:snake:*` | game-snake | Best score, settings |
+| `g499:snake:*` | game-snake | Best score per mode (`best:easy`, `best:normal`, `best:fast`), mode, d-pad on or off |
 | `g499:coloring:*` | game-coloring | Saved pictures, settings |
 
 ## 5. Offline model
@@ -280,8 +280,8 @@ Effort: S = about 1 week, M = 2 to 3 weeks, L = 4 weeks or more.
 | Game | Repo | Status |
 | --- | --- | --- |
 | Hub | `499apps/games` | Built |
-| 3D Coloring | `499apps/game-coloring` | Scaffold now, full game in G3 |
-| 3D Snake | `499apps/game-snake` | Scaffold now, full game in G2 |
+| 3D Coloring | `499apps/game-coloring` | Built (G3): picture picker, fill, brush and rainbow tools, undo, autosave, PNG export |
+| 3D Snake | `499apps/game-snake` | Built (G2): easy, normal and fast modes |
 
 ### Next: Catch the Starship
 
@@ -324,6 +324,6 @@ Effort: S = about 1 week, M = 2 to 3 weeks, L = 4 weeks or more.
 ## 14. Status and next steps
 
 - G1 (this task): kit, hub, privacy page, assembly, local CI, game scaffolds, this plan.
-- G2: build the full 3D Snake in `game-snake`.
-- G3: build the full 3D Coloring in `game-coloring`.
+- G2 (done): the full 3D Snake in `game-snake`.
+- G3 (done): the full 3D Coloring in `game-coloring`.
 - Later: Catch the Starship design doc, then the game.
