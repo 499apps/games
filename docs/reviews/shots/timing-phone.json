@@ -1,0 +1,10 @@
+{
+  "hubReadyMs": 2050,
+  "snakeReadyMs": 2134,
+  "snakeMid": true,
+  "snakeEaten": 4,
+  "snakeScore": 100,
+  "coloringReadyMs": 999,
+  "coloringTaps": 12,
+  "coloringPainted": 826768
+}
