@@ -3,12 +3,12 @@
     {
       "slug": "snake",
       "repo": "https://github.com/499apps/game-snake.git",
-      "ref": "af18319a59f4413480b1fb05b3beed532bdf27fb"
+      "ref": "5f4dfb0da21374141e6a3e6f6b18a8e671d69567"
     },
     {
       "slug": "coloring",
       "repo": "https://github.com/499apps/game-coloring.git",
-      "ref": "673ee580a695baa3f248bb518dcb678a6e85c19b"
+      "ref": "822aaca780de9d0b8dafe76681672c44f4d3da58"
     }
   ]
 }
