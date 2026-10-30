@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Hub scene: a cozy playroom with a glossy arcade marquee and a shelf of big game cartridges.
  * Each cartridge has a glowing screen and a small 3D preview of its game. Rendering only:
  * selection, layout and the catalogue live in pure modules.
@@ -68,7 +68,7 @@ function buildColoringPreview(entry: GameEntry): THREE.Group {
       bevelSegments: 3,
       curveSegments: 40,
     }),
-    candyMaterial(previewColor(entry, palette.cream), { roughness: 0.4 }),
+    candyMaterial(previewColor(entry, mixHex(palette.cream, palette.tangerine, 0.3)), { roughness: 0.4 }),
   );
   board.castShadow = true;
   g.add(board);
@@ -130,7 +130,8 @@ function buildSnakePreview(entry: GameEntry): THREE.Group {
   pts.push(new THREE.Vector3(last.x * 0.5, last.y + 0.22, 0.45));
   pts.push(new THREE.Vector3(0.05, last.y + 0.3, 0.7));
   const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-  const bodyColor = previewColor(entry, palette.lime);
+  // The game's own snake green: pastel lime read pale mint on the real GPU (H1b).
+  const bodyColor = previewColor(entry, '#2fc45a');
   const body = new THREE.Mesh(
     new THREE.TubeGeometry(curve, 220, 0.13, 18, false),
     candyMaterial(bodyColor, { emissive: palette.mint, emissiveIntensity: 0.08 }),
@@ -253,13 +254,14 @@ function buildTile(entry: GameEntry, index: number): TileRig {
 
   const screenMat = new THREE.MeshPhysicalMaterial({
     color: mixHex(palette.ink, entry.accent, 0.12),
-    roughness: 0.12,
+    // Soft gloss only: a mirror clearcoat laid a white veil over the preview (g7).
+    roughness: 0.3,
     metalness: 0,
-    clearcoat: 1,
-    clearcoatRoughness: 0.05,
+    clearcoat: 0.35,
+    clearcoatRoughness: 0.2,
     emissive: new THREE.Color(entry.accent),
     emissiveIntensity: 0.15,
-    envMapIntensity: 1.1,
+    envMapIntensity: 0.35,
   });
   const screen = new THREE.Mesh(roundedBox(TILE_W - 0.4, TILE_H * 0.56, 0.1, 0.1, 4), screenMat);
   screen.position.set(0, TILE_H * 0.6, 0.27);
@@ -284,6 +286,14 @@ function buildTile(entry: GameEntry, index: number): TileRig {
   body.add(strip);
 
   const preview = buildPreview(entry);
+  // Soft gloss on the preview toys: a mirror coat plus env light made them milky (H1b).
+  preview.traverse((o) => {
+    const m = (o as THREE.Mesh).material;
+    if (m instanceof THREE.MeshPhysicalMaterial) {
+      m.clearcoat = Math.min(m.clearcoat, 0.3);
+      m.envMapIntensity = 0.35;
+    }
+  });
   const previewHolder = new THREE.Group();
   previewHolder.position.set(0, TILE_H * 0.6, 0.75);
   previewHolder.scale.setScalar(0.88);
@@ -326,7 +336,7 @@ export class HubScene {
   private readonly particles: ParticleSystem;
   private readonly sparkles: THREE.InstancedMesh;
   private readonly sparkleSeeds: Array<{ x: number; y: number; z: number; speed: number; phase: number; size: number }> = [];
-  private readonly bulbs: THREE.MeshPhysicalMaterial[] = [];
+  private readonly bulbs: THREE.MeshBasicMaterial[] = [];
   private readonly marquee = new THREE.Group();
   private readonly raycaster = new THREE.Raycaster();
   private readonly dummy = new THREE.Object3D();
@@ -339,6 +349,8 @@ export class HubScene {
   private pointer = { x: 0, y: 0 };
   private firstLayout = true;
   private shadowFrame = 0;
+  /** Tier the materials were last set up for (see applyTierLook). */
+  private lookTier = '';
 
   constructor(kit: KitRenderer, games: readonly GameEntry[], rng: Rng, o: HubSceneOptions) {
     this.kit = kit;
@@ -407,12 +419,12 @@ export class HubScene {
     const glow = new THREE.Mesh(
       roundedBox(1, 1, 1, 0.08, 3),
       new THREE.MeshPhysicalMaterial({
-        color: palette.lemon,
+        color: mixHex(palette.lemon, palette.tangerine, 0.4),
         emissive: new THREE.Color(palette.tangerine),
         // Warm, not white: the bar clipped to white at 1.1 on a real GPU (review H1).
-        emissiveIntensity: 0.6,
+        emissiveIntensity: 0.3,
         roughness: 0.2,
-        clearcoat: 1,
+        clearcoat: 0.3,
       }),
     );
     glow.name = 'marquee-glow';
@@ -420,13 +432,10 @@ export class HubScene {
     const bulbGeo = new THREE.SphereGeometry(0.075, 14, 10);
     for (let k = 0; k < 14; k++) {
       const color = funColors[k % funColors.length] as string;
-      const mat = new THREE.MeshPhysicalMaterial({
-        color,
-        emissive: new THREE.Color(color),
-        emissiveIntensity: 1.4,
-        roughness: 0.15,
-        clearcoat: 1,
-      });
+      // Bulbs are unlit: a basic material costs almost nothing per pixel (H2-g7). The pulse
+      // scales the colour; values above 1 still reach the bloom threshold.
+      const mat = new THREE.MeshBasicMaterial({ color });
+      mat.userData.base = new THREE.Color(color);
       this.bulbs.push(mat);
       const bulb = new THREE.Mesh(bulbGeo, mat);
       bulb.name = 'marquee-bulb';
@@ -659,13 +668,15 @@ export class HubScene {
       rig.preview.rotation.y = Math.sin(rig.spin) * 0.55;
       rig.preview.position.y = TILE_H * 0.6 + Math.sin(t * 2 + rig.index) * 0.04 * motion * (0.5 + rig.sel);
 
-      const pulse = this.reduced ? 0 : Math.sin(t * 3.2) * 0.12 * rig.sel;
-      rig.screenMat.emissiveIntensity = 0.14 + 0.45 * rig.sel + 0.12 * rig.hover + pulse;
+      // A small lift for the selected screen: a strong glow washed the preview out (H1b).
+      const pulse = this.reduced ? 0 : Math.sin(t * 3.2) * 0.05 * rig.sel;
+      rig.screenMat.emissiveIntensity = 0.14 + 0.15 * rig.sel + 0.08 * rig.hover + pulse;
       rig.stripMat.emissiveIntensity = 0.35 + 1.0 * rig.sel + 0.4 * rig.hover;
     }
 
     this.bulbs.forEach((m, k) => {
-      m.emissiveIntensity = this.reduced ? 1.0 : 0.7 + 0.6 * (0.5 + 0.5 * Math.sin(t * 2.4 + k * 0.9));
+      const level = this.reduced ? 1.0 : 0.7 + 0.6 * (0.5 + 0.5 * Math.sin(t * 2.4 + k * 0.9));
+      m.color.copy(m.userData.base as THREE.Color).multiplyScalar(1.4 * level);
     });
 
     const count = this.sparkles.count;
@@ -688,11 +699,29 @@ export class HubScene {
 
     this.particles.update(dt);
     this.applyCamera(dt);
+    this.applyTierLook();
 
     // Tiles only bob a few centimetres, so the shadow map refreshes every few frames, not
     // every frame. A tier change drops the map; draw a new one at once.
     this.shadowFrame = (this.shadowFrame + 1) % SHADOW_EVERY;
     if (this.shadowFrame === 0 || this.lights.key.shadow.map === null) this.requestShadow();
+  }
+
+  /**
+   * At tier low, drop the clearcoat layer (a second specular pass on every pixel) so a busy
+   * integrated GPU keeps 60 fps (H2-g7). Restored when the tier rises again.
+   */
+  private applyTierLook(): void {
+    const tier = this.kit.settings.tier;
+    if (tier === this.lookTier) return;
+    this.lookTier = tier;
+    const low = tier === 'low';
+    this.kit.scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material;
+      if (!(m instanceof THREE.MeshPhysicalMaterial)) return;
+      if (m.userData.coat === undefined) m.userData.coat = m.clearcoat;
+      m.clearcoat = low ? 0 : (m.userData.coat as number);
+    });
   }
 
   private requestShadow(): void {

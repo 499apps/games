@@ -88,3 +88,67 @@ This build matches them for speed and tools. Those apps show the paint at full s
 - Pinch zoom on a real phone. CI covers emulation only.
 - The cause of C1 is from code reading. Confirm it with the colour test before and after the change.
 - The fixes for C1 to C4 are not tested.
+
+## Re-score after fixes (g6)
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-10-30 |
+| Pinned code | games-kit 94bac65, game-coloring 25759fc |
+| Checked | New real-GPU shots `shots/coloring/phone-1-blank.png`, `phone-2-painted.png`, `phone-3-palette.png`, `desktop-1-blank.png`, `desktop-2-painted.png`, `desktop-3-palette.png`. `shots/timing-*.json`. Source: `game-coloring/src/{main,easel}.ts`, `game-coloring/src/game/{regions,scenes}.ts`. Operator G7-RESULTS (C1 deltaE, look gate). |
+| Not checked | The g5 shots (in git at 846a0c4). I compare with the g5 text. The "All done!" moment and the next-picture button are not in a shot. |
+
+### Verdict (g7)
+
+**SHIP. Overall 4.37 / 5 (g5: 3.84).**
+
+This was the strongest game and it is now clearly ready. The paint on the easel matches the swatch. Lime, sky blue, violet, tangerine and lemon all read at full strength. The frame halo is gone. The picture is bigger on phones, and a Pictures button is in the tray. Only small polish items stay.
+
+### What I see in the new shots
+
+- `phone-2-painted.png`: lime background, blue nose, violet and tangerine fins, green planet, blue star. All match the swatches in `phone-3-palette.png`.
+- `desktop-2-painted.png`: sky blue background, lemon body, teal flame. True colours. The paint is a little lighter at the left and right paper edges.
+- `desktop-1-blank.png`: matte peach frame, no white halo. The window frame is matte.
+- `phone-1-blank.png`: the paper spans about 274 of 390 CSS px. That is about 87% of the width right of the tray. The tray has fill, colour, Pictures, undo, redo and recentre.
+- `phone-3-palette.png`, `desktop-3-palette.png`: the palette scrim also dims the current-colour swatch in the tray. Lemon shows as olive there.
+
+### Scores (g7)
+
+| # | Dimension | Weight | g5 | g7 | Evidence | Conf |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Core loop and clarity of goal | 15% | 4 | 5 | Tap, fill, true colour, ripple and splat (`phone-2-painted.png`). The reward now looks like the promise. | H |
+| 2 | Onboarding / first time | 12% | 5 | 5 | Ready in 0.84 to 0.94 s (`timing-*.json`). One tap paints. | H |
+| 3 | Feedback and readability | 12% | 3 | 4 | Red on the easel rgb(243,85,91) vs swatch rgb(255,79,94), deltaE 6.32 (was 30.8). No glare. Small edge lightening (C7). | H |
+| 4 | Pacing and session length | 8% | 4 | 4 | No change. | M |
+| 5 | Difficulty and fairness | 10% | 4 | 5 | 16 CSS px tap tolerance (`game-coloring/src/game/regions.ts:151,159`, `main.ts:284`). A small unpainted part near an edge wins. Property tests in `regions.test.ts`. Not tested with a real finger. | M |
+| 6 | Game feel, juice, controls | 15% | 4 | 4 | No change. | M |
+| 7 | Replayability, non-manipulative retention | 8% | 4 | 4 | Pictures button in the tray (`phone-1-blank.png`). Next picture after "All done!" (`scenes.ts:418`, unit tested). Not seen in a shot. | M |
+| 8 | Accessibility and inclusivity | 10% | 3 | 4 | Bigger picture, 16 px tolerance, labels fit (`desktop-1-blank.png`), 56 px close button. | H |
+| 9 | Presentation, art, audio | 6% | 3 | 4 | Vivid paint, matte frame, cosy room. Audio not heard. | H |
+| 10 | Technical polish | 4% | 4 | 4 | 180 unit, 59 e2e, 0 flaky. Colour test C1 and look gate (0.61% software GL, 0.62% host GPU). | H |
+| | **Weighted overall** | | **3.84** | **4.37** | 0.15x5 + 0.12x5 + 0.12x4 + 0.08x4 + 0.10x5 + 0.15x4 + 0.08x4 + 0.10x4 + 0.06x4 + 0.04x4 | |
+
+### g5 findings
+
+| ID | Status | Evidence |
+| --- | --- | --- |
+| C1 | FIXED | Lambert art material, no specular, clearcoat or env (`game-coloring/src/easel.ts:206-213`). Neutral tone mapping (`easel.ts:49`, `main.ts:105`). Bloom threshold 1.5 (`easel.ts:47`). deltaE 6.32 in the e2e test. True colours in `phone-2-painted.png` and `desktop-2-painted.png`. |
+| C2 | FIXED | Frame sheen 0 and clearcoat 0.3 (`easel.ts:302-320`). Matte window frame (`easel.ts:364`). No halo in `desktop-1-blank.png`. |
+| C3 | FIXED | The paper fills about 87% of the free width on a phone (`phone-1-blank.png`). Tolerance in CSS px (`regions.ts:151,159`). About 27% of the phone height under the easel is still empty floor. The paper is square, so the width limits it. Acceptable. |
+| C4 | FIXED | Pictures button in the tray (`phone-1-blank.png`, `desktop-1-blank.png`). Next-picture button from code and unit test only (`scenes.ts:418`). |
+| C5 | FIXED | "Pictures", "My gallery", "Download", "New page" show in full (`desktop-1-blank.png`). |
+| C6 | FIXED | One tray column on phones; the drawer button is top-left (`phone-1-blank.png`). |
+
+### New findings (g7)
+
+| ID | Sev | Finding | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| C7 | P3 | Paint is a little lighter near the left and right paper edges. A filled background is not one even colour. | `desktop-2-painted.png` (sky blue lighter at the left edge). The art takes diffuse light from the key and the pink fill point light (`easel.ts:44-45`, `CANVAS_DIFFUSE = 0.3`). | In `game-coloring/src/easel.ts:44-45` try `CANVAS_DIFFUSE = 0.15` and `CANVAS_GLOW = 1.0`. Then run the C1 e2e test again. Keep deltaE below 8. |
+| C8 | P3 | When the palette is open, the scrim dims the current-colour swatch in the tray. Lemon shows as olive, so the child sees the wrong colour while choosing. | `phone-3-palette.png`, `desktop-3-palette.png`. | In `game-coloring/src/game.css` raise the current-colour swatch above the scrim (`position: relative; z-index` above the scrim), or leave the tray out of the scrim area. |
+
+### UNVERIFIED (g7)
+
+- Audio.
+- "All done!" and the next-picture button.
+- Small-part taps with a real child's finger.
+- The deltaE number comes from the operator's e2e run. I did not run it.

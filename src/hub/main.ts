@@ -1,7 +1,8 @@
-/**
+﻿/**
  * Hub page (/games/): 3D shelf of game cartridges plus real, focusable links for every game.
  * Touch, mouse, keyboard and gamepad all move the same selection.
  */
+import * as THREE from 'three';
 import '../kit/styles.css';
 import './hub.css';
 import { isDirection, type Action, type InputSource } from '../kit/input';
@@ -35,7 +36,8 @@ const stage = createStage({
   label: 'A toy shelf with a game cartridge for each game',
   fallback: { title: '499apps Games', text: 'Pick a game from the buttons below.' },
   // Bloom only on real highlights (bulbs, the selected strip), not on the lit pastel shells.
-  renderer: { fov: 38, exposure: 0.95, bloom: { strength: 0.4, radius: 0.45, threshold: 1.15 } },
+  // Neutral tone mapping keeps the pastel shells and previews in colour; ACES washed them white (g7).
+  renderer: { fov: 38, toneMapping: THREE.NeutralToneMapping, exposure: 0.85, bloom: { strength: 0.4, radius: 0.45, threshold: 1.15 } },
 });
 
 const scene = stage.kit

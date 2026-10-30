@@ -89,3 +89,75 @@ The bot ate 4 foods in one round on both sizes and scored 100. Four plain meals 
 - Swipe input on a real phone. CI covers touch emulation only.
 - Gamepad input: code only.
 - The fixes for S1 to S4 are not tested.
+
+## Re-score after fixes (g6)
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-10-30 |
+| Pinned code | games-kit 94bac65, game-snake ba4913f |
+| Checked | New real-GPU shots `shots/snake/phone-1-ready.png`, `phone-2-early.png`, `phone-3-midgame.png`, `desktop-1-ready.png`, `desktop-2-early.png`, `desktop-3-midgame.png`. `shots/timing-*.json`. CI baseline `game-snake/e2e/screenshots/iphone-win32/snake.png`. Source: `game-snake/src/{main,scene,logic}.ts`, `game-snake/src/game/{board,glow,food}.ts`, `game-snake/index.html`. Operator G7-RESULTS. |
+| Not checked | The g5 shots (in git at 846a0c4). I compare with the g5 text. Game-over card, pause overlay, Garden boards and Fast mode are not in any shot. |
+
+### Verdict (g7)
+
+**SHIP WITH FIXES. Overall 4.04 / 5 (g5: 3.64).**
+
+The g5 blockers are gone. The board no longer washes out after a meal. A first-time child starts in Easy. The board fills 90% of the phone width. Three look problems stay:
+
+1. The board rim is a hard white neon frame. It is the brightest thing on screen, and it hides the mode colour.
+2. The snake body still reads pale mint, not the strong green in the code.
+3. The berry food is now the white blob that the gem was in g5.
+
+### What I see in the new shots
+
+- `phone-2-early.png` and `desktop-2-early.png` (just after a meal): the grid stays calm. The snake and the next food stay visible. S1 is fixed.
+- All six shots: the rim is near-white with a wide glow. In Easy the rim should read sky blue (`game-snake/src/game/board.ts:152`). It reads white. The CI baseline `iphone-win32/snake.png` shows the same white rim, so it is not only bloom.
+- All six shots: the body is pale mint with a glow, not `#2fc45a`.
+- `phone-3-midgame.png`, `desktop-3-midgame.png`: the gem now reads as a blue diamond. S3 is fixed for the gem.
+- `phone-2-early.png`, `desktop-2-early.png`: the food at the centre is a white cluster of 4 balls. That is the berry shape (`food.ts:87-102`).
+- `phone-1-ready.png`: the 56 px "Easy" speed button sits next to Play. The board spans about 90% of the width.
+
+### Scores (g7)
+
+| # | Dimension | Weight | g5 | g7 | Evidence | Conf |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Core loop and clarity of goal | 15% | 4 | 4 | No change in the loop. The food is easier to find after a meal. | H |
+| 2 | Onboarding / first time | 12% | 4 | 5 | Easy is the default (`game-snake/src/logic.ts:81-86`). A 56 px speed button on the start screen (`game-snake/index.html:42`, `main.ts:466-471`, `phone-1-ready.png`). Ready in 1.56 to 1.64 s (`timing-*.json`). The swipe cue (S6) is still missing, but the d-pad shows. | H |
+| 3 | Feedback and readability | 12% | 3 | 3 | Fixed: meal flash (S1), gem (S3). New: white rim (S9), white berry (S10). Open: pale body (S2). | H |
+| 4 | Pacing and session length | 8% | 4 | 4 | No change. | M |
+| 5 | Difficulty and fairness | 10% | 4 | 5 | The only g5 issue was the hard default. Easy now wraps and is slow (`logic.ts:81`, unit test `logic.test.ts:102-105`). | M |
+| 6 | Game feel, juice, controls | 15% | 4 | 4 | No change. | M |
+| 7 | Replayability, non-manipulative retention | 8% | 3 | 4 | Optional seeded Garden boards, off by default, own best score per mode (`main.ts:36,82-85`). Not in a shot. | M |
+| 8 | Accessibility and inclusivity | 10% | 3 | 4 | Board 90% wide on phones. Labels fit (`desktop-1-ready.png`). 56 px close button. The rim height still shows the mode; the rim colour no longer does (S9). | H |
+| 9 | Presentation, art, audio | 6% | 3 | 3 | The board reads deep blue-violet now. The white rim and the pale body still flatten the look. Audio not heard. | H |
+| 10 | Technical polish | 4% | 4 | 4 | 165 unit, 43 e2e, 0 flaky, with the look gate and the frame time on the host GPU. | H |
+| | **Weighted overall** | | **3.64** | **4.04** | 0.15x4 + 0.12x5 + 0.12x3 + 0.08x4 + 0.10x5 + 0.15x4 + 0.08x4 + 0.10x4 + 0.06x3 + 0.04x4 | |
+
+### g5 findings
+
+| ID | Status | Evidence |
+| --- | --- | --- |
+| S1 | FIXED | Grid `0.35 + 0.55 * glow`, capped (`game-snake/src/game/glow.ts:13-15`). Flash on the rim and a ring only (`board.ts:126-138,167-175`). Bloom pulse max x1.15 (`glow.ts:10,28-31`, `scene.ts:556`). `phone-2-early.png` shows no wash. |
+| S2 | PARTLY | Done: fill 10 (`scene.ts:143`), tiles env 0.2 and roughness 0.6 (`board.ts:50-55`), Neutral tone mapping and exposure 0.85 (`main.ts:211-217`). The tiles now read blue-violet. Not done: the body still reads pale mint in every shot and in the CI baseline. See S2-g7. |
+| S3 | FIXED (gem) | `#3d8bfd`, emissive 0.2, env 0.6 (`food.ts:12,67-79`). The gem reads blue in `phone-3-midgame.png`. The berry has the same problem now (S10). |
+| S4 | FIXED | The board spans about 90% of the phone width (`phone-1-ready.png`). About 120 CSS px stays empty above the d-pad. The board is limited by the width, so this is acceptable. |
+| S5 | FIXED | `DEFAULT_MODE = 'easy'` (`logic.ts:81`). Speed button on the start screen (`index.html:42`, `phone-1-ready.png`). |
+| S6 | OPEN | No swipe cue. P3. |
+| S7 | FIXED | "D-pad", "Garden", "Full screen", "Clear data" show in full (`desktop-1-ready.png`). |
+| S8 | FIXED | Garden boards (see dimension 7). Not seen in a shot. |
+
+### New findings (g7)
+
+| ID | Sev | Finding | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| S9 | P2 | The rim is a hard white neon frame with a wide glow. It is the brightest thing on screen and it competes with the snake. In Easy it should read sky blue; it reads white, so the colour cue for "edges wrap" is lost. | All six shots and `iphone-win32/snake.png`. Rim colour = emissive colour = pastel `palette.sky` or `palette.bubblegum` (`board.ts:101-105,150-156`). Rest emissive 0.6 (`glow.ts:23-25`: `0.25 + 0.35 * glow`). Candy defaults clearcoat 1 and env 0.9. | In `game-snake/src/game/glow.ts:24` use `0.1 + 0.15 * glow + 0.45 * flash`. In `board.ts:152` use `mixHex(palette.sky, palette.night, 0.25)` and `mixHex(palette.bubblegum, palette.night, 0.2)`. In `board.ts:101-105` add `clearcoat: 0.4` and set `envMapIntensity` to 0.35. Update `glow.test.ts`. Add an e2e check: sample a rim pixel at `?tier=high` and assert its hue is within 25 degrees of the swatch hue. |
+| S2-g7 | P2 | The body reads pale mint, not `#2fc45a`. | All six shots, `iphone-win32/snake.png`. Body: clearcoat 0.85, env 0.55 (`scene.ts:180-187`). Head the same (`scene.ts:206-209`). The top-down camera sees the lit top of the tube: hemisphere 1.15 with a near-white sky (`games-kit/src/theme.ts:38-40`) plus key 2.4. Neutral tone mapping turns very bright colours toward white. This cause is from code reading (M). | In `game-snake/src/scene.ts:143` also set `lights.hemi.intensity = 0.7`. In `scene.ts:185-187` and `207-209` use clearcoat 0.5 and env 0.3. Move `game-coloring/src/game/color-diff.ts` to `games-kit/src/color-diff.ts`. Add a Snake e2e test like Coloring C1: at `?tier=high`, sample the head and assert deltaE to `#2fc45a` below 15. |
+| S10 | P2 | The berry food reads as a white blob. A child sees "a white thing", not a purple berry. | `phone-2-early.png`, `desktop-2-early.png` (centre). Pastel `palette.lavender` with emissive lavender 0.4 and candy defaults (`food.ts:16,89`). | In `game-snake/src/game/food.ts:16,89` use `#8f5bf0` (a deeper violet), `emissiveIntensity: 0.15`, `envMapIntensity: 0.5`. Use the same colour check as S2-g7. |
+
+### UNVERIFIED (g7)
+
+- Audio.
+- Garden boards, the speed cycle, the game-over card and the pause overlay are not in a shot.
+- The cause of S2-g7 is from code reading.
+- Swipe on a real phone.

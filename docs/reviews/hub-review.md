@@ -94,3 +94,85 @@ The hub matches these for clarity. It loses to them on art readability today, be
 - The reason for the missing `frame-ancestors` (H8) is my inference.
 - The legal status of the earlier coming-soon name (H3, since renamed). I am not a lawyer.
 - The fixes for H1 and H2 are not tested. Check them with the clipping-budget test and the frame-time test.
+
+## Re-score after fixes (g6)
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-10-30 |
+| Pinned code | games-kit 94bac65, games 0599f35 |
+| Checked | New real-GPU shots `shots/hub/desktop-1-landing.png`, `desktop-2-privacy.png`, `phone-1-landing.png`, `phone-2-privacy.png`. `shots/timing-*.json`. CI baselines `games/e2e/screenshots/chromium-win32/hub.png` and `iphone-win32/hub.png`. Source: `games/src/hub/{main,scene,catalog,catalog.test}.ts`, `games-kit/src/{theme,scene-helpers,quality,pixels,renderer,styles.css}`, `games-kit/src/smoke/suite.ts`. Operator G7-RESULTS. |
+| Not checked | The g5 shots (in git at 846a0c4). I cannot run git, so I compare with the g5 text. I did not run the build. |
+
+### Verdict (g7)
+
+**SHIP WITH FIXES. Overall 3.78 / 5 (g5: 3.68).**
+
+The rail, the drawer and the labels are now correct. No P0 or P1 stays open. The hub is still the weakest page to look at:
+
+1. The tile art still reads milky on a real GPU. The shells are fixed, but the previews inside them are not.
+2. The frame time passes on a quiet GPU and fails when the GPU is shared.
+
+### What I see in the new shots
+
+- `desktop-1-landing.png`: the shells are now light blue and light green, not white. The Coloring preview is still a near-white disc on a pale yellow screen. Its paint dabs are faint. The Snake preview is a pale mint coil. The marquee bar is a hard cream tube with a white rim. The locked tile has the best colour on the shelf.
+- `phone-1-landing.png`: the same look. The drawer button is now top-left. The locked tile still has its own row (H7).
+- `chromium-win32/hub.png` (software GL, tier low, no bloom): the palette, the dabs and the snake read well. The marquee is dark plum.
+- `iphone-win32/hub.png` (tier medium, bloom on): the palette glows white again. This shows that the previews are above the bloom threshold, not that the art is bad.
+
+### Scores (g7)
+
+Confidence: H = seen in shots and code, M = code or one run, L = inference.
+
+| # | Dimension | Weight | g5 | g7 | Evidence | Conf |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Core loop and clarity of goal | 15% | 4 | 4 | One tap to a game. Labelled pills with icons. The tile art is still weak (H1). | H |
+| 2 | Onboarding / first time | 12% | 4 | 4 | Ready in 1.32 s (phone) and 1.22 s (desktop), was 2.05 s and 1.36 s (`timing-*.json`). | H |
+| 3 | Feedback and readability | 12% | 3 | 3 | Fixed: labels wrap (`desktop-1-landing.png`). Open: the Coloring preview is near-white on pale yellow. The selected screen glows to 0.59 plus a pulse (`games/src/hub/scene.ts:662-663`). | H |
+| 4 | Pacing and session length | 8% | 4 | 4 | No change. | M |
+| 5 | Difficulty and fairness | 10% | 4 | 4 | No change. | M |
+| 6 | Game feel, juice, controls | 15% | 4 | 4 | No change. | M |
+| 7 | Replayability, non-manipulative retention | 8% | 4 | 4 | No change. | H |
+| 8 | Accessibility and inclusivity | 10% | 3 | 4 | Labels wrap to 2 lines in an 80 px rail (`games-kit/src/styles.css:229-236`, `theme.ts:58`). Close button 56 px (`styles.css:380-381`). Toggle top-left (`styles.css:314`, `phone-1-landing.png`). | H |
+| 9 | Presentation, art, audio | 6% | 3 | 3 | Shells improved. Previews milky, marquee bar harsh (`desktop-1-landing.png`). Audio not heard. | H |
+| 10 | Technical polish | 4% | 3 | 3 | Frame time: 1 failure in `ci:local` and 1 in `ci:site` (33.3 ms, shared GPU). Green on a quiet GPU. | M |
+| | **Weighted overall** | | **3.68** | **3.78** | 0.15x4 + 0.12x4 + 0.12x3 + 0.08x4 + 0.10x4 + 0.15x4 + 0.08x4 + 0.10x4 + 0.06x3 + 0.04x3 | |
+
+### g5 findings
+
+| ID | Status | Evidence |
+| --- | --- | --- |
+| H1 | PARTLY | Done: hub bloom threshold 1.15 (`games/src/hub/main.ts:38`). Shell 12% night, clearcoat 0.6, env 0.45 (`scene.ts:47,244-247`). Strip `0.35 + 1.0 * rig.sel` (`scene.ts:664`). Marquee emissive 0.6 (`scene.ts:413`). Not done: the previews keep the candy defaults, clearcoat 1 and env 0.9 (`games-kit/src/scene-helpers.ts:78,83`), on pastel colours: cream board (`scene.ts:71`), `palette.lime` snake (`scene.ts:133`). The hub still uses ACES (no `toneMapping` in `main.ts:38`). Snake and Coloring left ACES because it pushed colours to white. The look gate passes because it counts only pixels with min(R, G, B) >= 240 (`games-kit/src/pixels.ts:5`). Milky pastels are lighter than the background but below 240. See K9. |
+| H2 | PARTLY | Done: shadows every 4th frame (`scene.ts:49,348-349`), sheen 0 (`scene-helpers.ts:81`), 30-frame window (`games-kit/src/quality.ts:135`), integrated GPUs start at medium (`quality.ts:119`). Result: 16.7 ms median on a quiet GPU. 33.3 ms when another Playwright run shared the GPU. Snake and Coloring passed in that same shared pass, so the hub is the heaviest page. My judgement is in H2-g7 below. |
+| H3 | FIXED | Title "Catch the Booster" (`games/src/hub/catalog.ts:49`). Pill "Booster" in both landing shots. Guard test (`games/src/hub/catalog.test.ts:63-67`). |
+| H4 | FIXED | "Sound", "Full screen", "Clear data" show in full (`desktop-1-landing.png`, `desktop-2-privacy.png`). |
+| H5 | FIXED | `games-kit/src/styles.css:380-381` uses `var(--g499-touch)`. The open drawer is not in a shot. |
+| H6 | FIXED | Top-left on the hub and the privacy page (`phone-1-landing.png`, `phone-2-privacy.png`). |
+| H7 | OPEN | The locked tile still has its own shelf row (`phone-1-landing.png`). P3. |
+| H8 | FIXED | Reason in `games/docs/PLAN.md:118`. Test in `games-kit/src/csp.test.ts:19-22`. |
+
+### H2-g7: is the hub too heavy for integrated GPUs under load?
+
+Yes, a little. It is not a blocker. Reasons:
+
+- The median is quantised to vsync: 16.7 ms or 33.3 ms. A 16.7 ms result shows only that each frame fits in one vsync. It does not show the headroom.
+- Under load the median went to 33.3 ms. The monitor drops one tier per window, then waits 2 windows (`quality.ts:172`). The test waits 1.5 s, then measures for 2 s. So the hub was at a lower tier for most of the measurement and still missed vsync.
+- Snake and Coloring held 60 fps under the same load. A real child's laptop often has other tabs or a video call open. The hub is the first page they see.
+
+The hub is a menu. A drop to 30 fps under load does not break play, so I rate it P2, not P1.
+
+### New findings (g7)
+
+| ID | Sev | Finding | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| H1b | P2 | The previews inside the tiles are still milky. The Coloring palette is near-white on a pale yellow screen. The Snake coil is pale mint. | `desktop-1-landing.png`, `phone-1-landing.png`, `iphone-win32/hub.png`. Compare with `chromium-win32/hub.png` (no bloom), where the art reads well. Code refs in H1 above. | In `games/src/hub/main.ts:38` add `toneMapping: THREE.NeutralToneMapping` (Snake and Coloring use it). In `games/src/hub/scene.ts`: give every preview material `clearcoat: 0.3` and `envMapIntensity: 0.35`. Make the palette board `mixHex(palette.cream, palette.tangerine, 0.3)` (`scene.ts:71`). Use the game's snake green `#2fc45a` for the preview body (`scene.ts:133`). Change the screen glow to `0.14 + 0.15 * rig.sel + pulse` and the pulse to `0.05` (`scene.ts:662-663`). Check with K9. |
+| H9 | P3 | The marquee bar glows as a hard cream tube with a white rim. It pulls the eye away from the tiles. | `desktop-1-landing.png` (top bar), `phone-1-landing.png`. Lemon colour with tangerine emissive 0.6 and clearcoat 1 (`games/src/hub/scene.ts:407-416`). | In `scene.ts:409-416` use colour `mixHex(palette.lemon, palette.tangerine, 0.4)`, `emissiveIntensity: 0.3`, `clearcoat: 0.3`. |
+| H2-g7 | P2 | The hub misses vsync on an integrated GPU when the GPU is shared, even after the tier drop. | Operator G7-RESULTS: 33.3 ms in `ci:local` and in `ci:site`. Snake and Coloring passed in the same pass. | (a) In `games-kit/src/scene-helpers.ts:78-83` let `candyMaterial` take `clearcoat: 0` at tier low (for example a kit flag set from `games-kit/src/quality.ts`). Clearcoat is a second specular layer on every pixel. (b) In `games/src/hub/scene.ts:420-434` draw the 14 bulbs as one `InstancedMesh` with `instanceColor`, and scale the colour per bulb for the pulse. (c) In `games-kit/src/smoke/suite.ts:250-282` also record the CPU time of each render call and the p90 frame time, so the test shows the headroom (see K10). |
+| H10 | P3 | A personal name (initials) is in code and in the reviews. The open-source rules forbid personal names. | `games/src/hub/catalog.test.ts:64`, this file line 26 (g5 text, kept unchanged on purpose). | In `games/src/hub/catalog.test.ts:64` write "The owner renamed ...". Edit line 26 of this file the same way, if the owner accepts a change to the g5 text. FIXLIST is already changed. |
+
+### UNVERIFIED (g7)
+
+- Audio.
+- The open drawer at 56 px.
+- The true GPU time per frame. The median hides it (K10).
+- The cause of the milky previews is from code reading and the two CI baselines. Confirm it with K9 before and after the H1b change.

@@ -61,7 +61,7 @@ describe('pages', () => {
 });
 
 describe('names', () => {
-  // H G renamed the rocket game to "Catch the Booster": no real space-company or vehicle names.
+  // The owner renamed the rocket game to "Catch the Booster": no real space-company or vehicle names.
   const banned = /starship|spacex|falcon|mechazilla|super heavy|tesla/i;
 
   it('uses no real space-company or vehicle names in the catalogue or the hub page', () => {
